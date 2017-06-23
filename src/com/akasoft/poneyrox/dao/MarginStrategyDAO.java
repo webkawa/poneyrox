@@ -71,7 +71,8 @@ public class MarginStrategyDAO extends AbstractDAO {
         if (result == null) {
             result = new MarginStrategyEntity();
             result.setMode(entity.getMode());
-            result.setMargin(entity.getMargin());
+            result.setProfit(entity.getProfit());
+            result.setLoss(entity.getLoss());
             result.setHash(entity.hashCode());
             super.getSession().persist(result);
         }

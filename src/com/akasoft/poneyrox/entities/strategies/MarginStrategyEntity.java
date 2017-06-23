@@ -23,29 +23,54 @@ import java.util.Objects;
                 query = "SELECT ms " +
                         "FROM MarginStrategyEntity ms " +
                         "WHERE ms.mode = :mode " +
-                        "AND ms.margin= :margin "
+                        "AND ms.profit = :profit " +
+                        "AND ms.loss = :loss"
         )
 })
 public class MarginStrategyEntity extends StrategyEntity {
     /**
-     *  Marge ciblée.
+     *  Profit maximum toléré.
+     *  Exprimé en pourcentage de la marge initiale entre offre et demande.
      */
-    private double margin;
+    private double profit;
 
     /**
-     *  Retourne la marge ciblée.
-     *  @return Marge ciblée.
+     *  Perte maximum tolérée.
+     *  Exprimée en pourcentage de la marge initiale entre offre et demande sans prise
+     *  en compte du déficit initial.
      */
-    public double getMargin() {
-        return this.margin;
+    private double loss;
+
+    /**
+     *  Retourne le profit maximum toléré.
+     *  @return Profit maximum.
+     */
+    public double getProfit() {
+        return this.profit;
     }
 
     /**
-     *  Affecte la marge ciblée.
-     *  @param margin Marge ciblée.
+     *  Retourne la perte maximum tolérée.
+     *  @return Perte maximum.
      */
-    public void setMargin(double margin) {
-        this.margin = margin;
+    public double getLoss() {
+        return this.loss;
+    }
+
+    /**
+     *  Définit le profit maximum toléré.
+     *  @param profit Profit maximum.
+     */
+    public void setProfit(double profit) {
+        this.profit = profit;
+    }
+
+    /**
+     *  Définit le profit minimum toléré.
+     *  @param loss Perte maximum.
+     */
+    public void setLoss(double loss) {
+        this.loss = loss;
     }
 
     /**
@@ -54,7 +79,7 @@ public class MarginStrategyEntity extends StrategyEntity {
      */
     @Override
     public AbstractStrategy asStrategy() {
-        return new MarginStrategy(this.margin);
+        return new MarginStrategy(this.profit, this.loss);
     }
 
     /**
@@ -63,6 +88,6 @@ public class MarginStrategyEntity extends StrategyEntity {
      */
     @Override
     protected int hashCodeSpe() {
-        return Objects.hash(this.margin);
+        return Objects.hash(this.profit, this.loss);
     }
 }

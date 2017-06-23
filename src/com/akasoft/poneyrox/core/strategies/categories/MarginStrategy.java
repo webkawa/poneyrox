@@ -19,24 +19,44 @@ import java.util.List;
  */
 public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> implements ExitLongITF<MarginStrategyEntity>, ExitShortITF<MarginStrategyEntity>, ObserverITF<MarginStrategyEntity> {
     /**
-     *  Marge minimum exigée.
+     *  Pourcentage de profit minimum toléré.
      */
-    public static final double MINIMUM = 0.05;
+    private static final double MINIMUM_PROFIT = 1;
 
     /**
-     *  Marge maximum évaluée.
+     *  Pourcentage de profit maximum toléré.
      */
-    public static final double MAXIMUM = 20;
+    private static final double MAXIMUM_PROFIT = 400;
 
     /**
-     *  Niveau de finesse.
+     *  Niveau de finesse du profit toléré.
      */
-    public static final int GRAIN = 92;
+    private static final int GRAIN_PROFIT = 24;
 
     /**
-     *  Pourcentage de marge ciblée.
+     *  Pourcentage de perte minimum tolérée.
      */
-    private double margin;
+    private static final double MINIMUM_LOSS = 1;
+
+    /**
+     *  Pourcentage de perte maximum tolérée.
+     */
+    private static final double MAXIMUM_LOSS = 400;
+
+    /**
+     *  Niveau de finesse de la perte tolérée.
+     */
+    private static final int GRAIN_LOSS = 24;
+
+    /**
+     *  Pourcentage de profit maximum toléré.
+     */
+    private double profit;
+
+    /**
+     *  Pourcentage de perte maximum toléré.
+     */
+    private double loss;
 
     /**
      *  Dernier niveau de demande.
@@ -58,16 +78,19 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
      */
     public MarginStrategy() {
         super("Sortie par marge");
-        this.margin = MarginStrategy.MINIMUM;
+        this.profit = MarginStrategy.MINIMUM_PROFIT;
+        this.loss = MarginStrategy.MINIMUM_LOSS;
     }
 
     /**
      *  Constructeur complet.
-     *  @param margin Marge affectée.
+     *  @param profit Profit toléré.
+     *  @param loss Perte tolérée.
      */
-    public MarginStrategy(double margin) {
+    public MarginStrategy(double profit, double loss) {
         this();
-        this.margin = margin;
+        this.profit = profit;
+        this.loss = loss;
     }
 
     /**
@@ -75,18 +98,26 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
      *  @param source Objet copié.
      */
     private MarginStrategy(MarginStrategy source) {
-        this(source.getMargin());
+        this(source.getProfit(), source.getLoss());
         this.ask = source.getAsk();
         this.bid = source.getBid();
         this.space = this.ask - this.bid;
     }
 
     /**
-     *  Retourne la marge ciblée.
-     *  @return Marge ciblée.
+     *  Retourne le pourcentage de profit maximum ciblé.
+     *  @return Pourcentage de profit maximum.
      */
-    public double getMargin() {
-        return this.margin;
+    public double getProfit() {
+        return this.profit;
+    }
+
+    /**
+     *  Retourne le pourcentage de perte maximum ciblé.
+     *  @return Pourcentage de perte maximum.
+     */
+    public double getLoss() {
+        return this.loss;
     }
 
     /**
@@ -112,7 +143,8 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
     @Override
     public MarginStrategyEntity serializeInner() {
         MarginStrategyEntity result = new MarginStrategyEntity();
-        result.setMargin(this.margin);
+        result.setProfit(this.profit);
+        result.setLoss(this.loss);
         return result;
     }
 
@@ -123,7 +155,8 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
     @Override
     public List<AbstractParameter> emitInnerParameters() throws InnerException {
         List<AbstractParameter> parameters = new ArrayList<>();
-        parameters.add(new DoubleParameter("margin", MarginStrategy.MINIMUM, MarginStrategy.MAXIMUM, MarginStrategy.GRAIN));
+        parameters.add(new DoubleParameter("profit", MarginStrategy.MINIMUM_PROFIT, MarginStrategy.MAXIMUM_PROFIT, MarginStrategy.GRAIN_PROFIT));
+        parameters.add(new DoubleParameter("loss", MarginStrategy.MINIMUM_LOSS, MarginStrategy.MAXIMUM_LOSS, MarginStrategy.GRAIN_LOSS));
         return parameters;
     }
 
@@ -136,8 +169,12 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
      */
     @Override
     public boolean consumeInnerParameter(String key, Object value) throws InnerException {
-        if ("margin".equals(key)) {
-            this.margin = (Double) value;
+        if ("profit".equals(key)) {
+            this.profit = (Double) value;
+            return true;
+        }
+        if ("loss".equals(key)) {
+            this.loss = (Double) value;
             return true;
         }
         return false;
@@ -192,8 +229,16 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
      *  @return Validation.
      */
     private boolean mustExit(double entry, boolean mode) {
-        double margin = mode ? this.bid - entry : entry - this.ask;
-        return (this.space / margin) * 100 > this.margin;
+        /* Détermine si le pourcentage de profit dégagé dépasse l'objectif */
+        double winMargin = mode ? this.bid - entry : entry - this.ask;
+        boolean winResult = (winMargin / this.space) * 100 > this.profit;
+
+        /* Détermine si le pourcentage de perte dégagé dépasse l'objectif */
+        double looseMargin = mode ? entry - this.bid : this.ask - entry;
+        boolean looseResult = (looseMargin / this.space) * 100 > this.loss;
+
+        /* Renvoi */
+        return winResult || looseResult;
     }
 
     /**
@@ -212,8 +257,9 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
     @Override
     public String toString() {
         return String.format(
-                "MARGIN[%s/%f]",
+                "MARGIN[%s/%f/%f]",
                 super.getMode(),
-                this.margin);
+                this.profit,
+                this.loss);
     }
 }
