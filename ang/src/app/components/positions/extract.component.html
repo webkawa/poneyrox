@@ -1,0 +1,11 @@
+<div class="header">
+  <h3>{{ title }}</h3>
+  <div class="buttons">
+    <div (click)="refresh()"
+         icon="refresh/32/true">&nbsp;</div>
+  </div>
+</div>
+<div>
+  <div *ngFor="let position of positions"
+       [position]="position"></div>
+</div>

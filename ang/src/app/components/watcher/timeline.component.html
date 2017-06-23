@@ -1,0 +1,34 @@
+<div class="header">
+  <h3>
+    <span>{{ timeline.label }}</span>
+    <small>Sur {{ timeline.market.label }} pour {{ timeline.size }} secondes</small>
+  </h3>
+  <div class="buttons">
+    <div *ngIf="timeline.active"
+         (click)="refresh()"
+         icon="refresh/32/true">&nbsp;</div>
+    <div *ngIf="timeline.active"
+         (click)="disableTimeline()"
+         icon="off/32/true">&nbsp;</div>
+    <div *ngIf="!timeline.active"
+         (click)="activateTimeline()"
+         icon="on/32/true">&nbsp;</div>
+  </div>
+</div>
+<div *ngIf="timeline.active"
+     class="body">
+  <div class="levels">
+    <div>&nbsp;</div>
+    <div *ngFor="let level of levels">
+      <h4>{{ level }}</h4>
+    </div>
+  </div>
+  <div *ngFor="let cells of data; let idx = index;"
+       class="column {{ idx == 0 ? 'first' : '' }}">
+    <div>
+      <h4>{{ updates[idx] | date:'HH:mm:ss' }}</h4>
+    </div>
+    <div *ngFor="let cell of cells"
+         [cell]="cell"></div>
+  </div>
+</div>

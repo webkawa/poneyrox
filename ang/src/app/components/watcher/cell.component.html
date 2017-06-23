@@ -1,0 +1,20 @@
+<div>
+  <h5>
+    <span class="{{ cell.data.bid.direction ? 'up' : 'down' }}"
+          icon="{{ cell.data.ask.direction ? 'up' : 'down' }}/16">&nbsp;</span>
+    <span>Demande</span>
+  </h5>
+  <p>{{ cell.data.ask.minimum | currency:'BTC':true:'4.2-2' }}</p>
+  <p>{{ cell.data.ask.average | currency:'BTC':true:'4.2-2' }}</p>
+  <p>{{ cell.data.ask.maximum | currency:'BTC':true:'4.2-2' }}</p>
+</div>
+<div>
+  <h5>
+    <span class="{{ cell.data.bid.direction ? 'up' : 'down' }}"
+          icon="{{ cell.data.bid.direction ? 'up' : 'down' }}/16">&nbsp;</span>
+    <span>Offre</span>
+  </h5>
+  <div>{{ cell.data.bid.minimum | currency:'BTC':true:'4.2-2' }}</div>
+  <div>{{ cell.data.bid.average | currency:'BTC':true:'4.2-2' }}</div>
+  <div>{{ cell.data.bid.maximum | currency:'BTC':true:'4.2-2' }}</div>
+</div>

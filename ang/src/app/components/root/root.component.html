@@ -1,0 +1,10 @@
+<h1>poneyrox.</h1>
+<div id="menu">
+  <div *ngFor="let tab of tabs"
+       (click)="goto(tab)">
+    <div icon="{{ tab.icon }}/32">&nbsp;</div>
+    <div>{{ tab.label }}</div>
+  </div>
+</div>
+<div id="watcher" *ngIf="display.key == 'watcher'"></div>
+<div id="simulations" *ngIf="display.key == 'simulations'"></div>

@@ -1,0 +1,101 @@
+/* Déclinaisons de gris */
+@darkergrey: #111;
+@darkgrey: #444;
+@lightgrey: #DDD;
+@lightergrey: #EEE;
+
+/* Couleurs */
+@green: #25b620;
+@red: #d91b0f;
+
+/* Taille des polices */
+@smallerfont: 10pt;
+@smallfont: 12pt;
+@mediumfont: 16pt;
+@largefont: 20pt;
+@largerfont: 24pt;
+
+/* Classes utilitaires */
+.full {
+  bottom: 0;
+  left: 0;
+  top: 0;
+  right: 0;
+}
+.fullAbsolute {
+  .full;
+  position: absolute;
+}
+.fullFixed {
+  .full;
+  position: fixed;
+}
+
+/* Boutons */
+.buttonClassic {
+  background: @darkgrey;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  display: inline-block;
+  margin: 0 8px 0 0;
+  padding: 4px 8px;
+
+  &:hover {
+    background: @darkergrey;
+  }
+
+  > div {
+    display: inline-block;
+    vertical-align: middle;
+
+    &:first-child {
+      height: 32px;
+      width: 32px;
+    }
+
+    &:last-child {
+      font-size: @mediumfont;
+      font-weight: bold;
+    }
+  }
+}
+
+/* Formulaires */
+.formInline {
+  > div {
+    display: inline-block;
+    margin: 0 8px 0 0;
+
+    &.button {
+      .buttonClassic;
+    }
+
+    > * {
+      display: block;
+    }
+
+    > label {
+      color: @darkgrey;
+      font-size: @smallfont;
+      font-style: italic;
+    }
+
+    > input, > select {
+      font-size: @mediumfont;
+      margin: 4px 0 0 0;
+      padding: 8px;
+    }
+
+    > input {
+      &[type="text"] {
+        width: 256px;
+      }
+
+      &[type="number"] {
+        width: 128px;
+        text-align: center;
+      }
+    }
+  }
+}

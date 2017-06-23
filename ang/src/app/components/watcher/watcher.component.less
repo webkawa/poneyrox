@@ -1,0 +1,40 @@
+@import '../../shared/variables.less';
+
+:host {
+  > form {
+    .formInline;
+  }
+
+  > div.rates {
+    > div {
+      background: @lightergrey;
+      border: 1px solid @darkgrey;
+      color: @darkgrey;
+      display: inline-block;
+      margin: 0 8px 0 0;
+      padding: 8px;
+
+      > h3 {
+        font-size: @mediumfont;
+        margin: 0;
+      }
+
+      > p {
+        font-size: @smallfont;
+        margin: 0;
+
+        > span {
+          display: inline-block;
+          width: 92px;
+
+          &:first-child {
+            font-weight: bold;
+          }
+
+          &:last-child {
+          }
+        }
+      }
+    }
+  }
+}

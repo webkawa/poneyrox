@@ -1,0 +1,43 @@
+<h2>Ajouter</h2>
+<form>
+  <div>
+    <label>Nom</label>
+    <input type="text" name="label" [(ngModel)]="add.label" />
+  </div>
+  <div>
+    <label>Marché</label>
+    <select name="market" [(ngModel)]="add.market">
+      <option *ngFor="let market of markets"
+              [ngValue]="market">{{ market.label }}</option>
+    </select>
+  </div>
+  <div>
+    <label>Crénelage</label>
+    <input type="number" name="size" [(ngModel)]="add.size" />
+  </div>
+  <div class="button"
+       (click)="addTimeline()">
+    <div icon="add/32">&nbsp;</div>
+    <div>Ajouter</div>
+  </div>
+</form>
+<h2>Liste</h2>
+<div class="rates">
+  <div *ngFor="let rate of rates">
+    <h3>{{ rate.market.label }}</h3>
+    <p class="ask">
+      <span>Demande : </span>
+      <span>{{ rate.ask | currency:'USD':true:'4.2-2'  }}</span>
+    </p>
+    <p class="bid">
+      <span>Offre : </span>
+      <span>{{ rate.bid | currency:'USD':true:'4.2-2'  }}</span>
+    </p>
+    <p class="date">
+      <span>Date : </span>
+      <span>{{ rate.time | date:'HH:mm:ss' }}</span>
+    </p>
+  </div>
+</div>
+<div *ngFor="let timeline of timelines"
+     [timeline]="timeline"></div>

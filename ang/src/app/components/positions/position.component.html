@@ -1,0 +1,39 @@
+<div class="profit">{{ position.profit | currency:'SAT':true:'4.0-0' }}</div>
+<div class="push">
+  <p class="label">Prix à l'entrée</p>
+  <p class="data">{{ position.entry | currency:'SAT':true:'4.0-0' }}</p>
+</div>
+<div class="push">
+  <p class="label">Prix à la sortie</p>
+  <p class="data">{{ position.exit | currency:'SAT':true:'4.0-0' }}</p>
+</div>
+<div class="push">
+  <p class="label">Score à l'entrée</p>
+  <p class="data">{{ position.entryScore }}</p>
+</div>
+<div class="push">
+  <p class="label">Score à la sortie</p>
+  <p class="data">{{ position.exitScore }}</p>
+</div>
+<div class="detail">
+  <p>{{ position.start | date:'dd/MM HH:mm:ss' }}</p>
+  <p>
+    <span>Durée :</span>
+    <span>{{ position.end - position.start | date:'mm:ss' }}</span>
+  </p>
+  <p>{{ position.end | date:'dd/MM HH:mm:ss' }}</p>
+</div>
+<div class="detail">
+  <p>
+    <span>Type :</span>
+    <span>{{ position.type }}</span>
+  </p>
+  <p>
+    <span>Mode :</span>
+    <span>{{ position.mode ? 'LONG' : 'SHORT' }}</span>
+  </p>
+  <p>
+    <span>Expiration :</span>
+    <span>{{ position.timeout ? 'oui' : 'non' }}</span>
+  </p>
+</div>

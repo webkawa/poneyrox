@@ -1,0 +1,138 @@
+@import '../../shared/variables.less';
+
+:host {
+  border: 1px solid @darkgrey;
+  margin: 8px 0;
+
+  > div.header {
+    background: @darkgrey;
+    color: white;
+    padding: 8px;
+    position: relative;
+
+    > h3 {
+      font-size: @largefont;
+      font-weight: bold;
+      margin: 0;
+
+      > small {
+        font-size: @smallfont;
+        text-transform: uppercase;
+      }
+    }
+
+    > div.buttons {
+      top: 4px;
+      position: absolute;
+      right: 4px;
+
+      > div {
+        border-radius: 4px;
+        cursor: pointer;
+        color: white;
+        display: inline-block;
+        height: 32px;
+        padding: 4px;
+        width: 32px;
+
+        &:hover {
+          background: @darkergrey;
+        }
+      }
+    }
+  }
+
+  > div.body {
+    font-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
+
+    > div {
+      @titleheight: 24px;
+      @cellheight: 128px;
+
+      display: inline-block;
+      font-size: @mediumfont;
+      overflow: hidden;
+      vertical-align: top;
+
+      &.levels {
+        width: 24px;
+
+        > div {
+          > h4 {
+            line-height: @cellheight;
+          }
+        }
+      }
+
+      &.column {
+        width: 92px;
+
+        &.first {
+          background: @lightergrey;
+        }
+
+        > div:first-child {
+          > h4 {
+            line-height: @titleheight;
+          }
+        }
+      }
+
+      > div {
+        padding: 4px;
+
+        &:first-child {
+          height: @titleheight;
+        }
+
+        &:not(:first-child) {
+          border-top: 1px solid @darkgrey;
+          height: @cellheight;
+        }
+
+        > h4 {
+          font-size: @smallfont;
+          margin: 0;
+          text-align: center;
+        }
+
+        > div {
+          font-size: @smallerfont;
+          margin: 2px 0;
+          text-align: center;
+
+          > h5 {
+            margin: 0;
+
+            > span {
+              border-radius: 2px;
+              display: inline-block;
+              height: 16px;
+
+              &:first-child {
+                width: 16px;
+
+                &.up {
+                  background: @green;
+                }
+                &.down {
+                  background: @red;
+                }
+              }
+
+              &:last-child {
+                line-height: 16px;
+              }
+            }
+          }
+
+          > p {
+            margin: 0;
+          }
+        }
+      }
+    }
+  }
+}

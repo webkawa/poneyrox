@@ -1,0 +1,56 @@
+@import '../../shared/variables.less';
+
+:host {
+  background: @lightergrey;
+  border: 1px solid @darkgrey;
+  color: @darkgrey;
+  font-size: 0;
+  margin-top: 8px;
+  padding: 4px 0;
+  width: 100%;
+
+  > div {
+    display: inline-block;
+    font-size: medium;
+    vertical-align: middle;
+
+    > p {
+      margin: 0;
+    }
+  }
+
+  > div.profit {
+    font-size: @largefont;
+    font-weight: bold;
+    text-align: center;
+    width: 8%;
+  }
+
+  > div.push {
+    text-align: center;
+    width: 18%;
+
+    > p.label {
+      color: @darkergrey;
+      font-size: @smallfont;
+      font-style: italic;
+    }
+    > p.data {
+      font-size: @mediumfont;
+    }
+  }
+
+  > div.detail {
+    text-align: left;
+    width: 10%;
+
+    > p {
+      font-size: @smallfont;
+
+      > span:first-child {
+        color: @darkergrey;
+        font-style: italic;
+      }
+    }
+  }
+}

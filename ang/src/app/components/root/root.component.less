@@ -1,0 +1,22 @@
+@import '../../shared/variables.less';
+
+:host {
+  .fullFixed;
+  font-family: Arial;
+  overflow: scroll;
+  padding: 16px;
+
+  > h1 {
+    color: @darkgrey;
+    font-size: @largerfont;
+    margin: 8px 0;
+  }
+
+  > div#menu {
+    padding: 8px 0;
+
+    > div {
+      .buttonClassic;
+    }
+  }
+}

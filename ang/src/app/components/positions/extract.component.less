@@ -1,0 +1,41 @@
+@import '../../shared/variables.less';
+
+:host {
+  background: @darkgrey;
+  color: @lightergrey;
+  margin-bottom: 8px;
+  padding: 8px;
+
+  > div.header {
+    position: relative;
+
+    > h3 {
+      color: white;
+      font-size: @largefont;
+      margin: 0 0 4px 0;
+    }
+
+    > div.buttons {
+      top: 0;
+      position: absolute;
+      right: 4px;
+
+      > div {
+        border-radius: 4px;
+        cursor: pointer;
+        color: white;
+        display: inline-block;
+        height: 32px;
+        padding: 4px;
+        width: 32px;
+
+        &:hover {
+          background: @darkergrey;
+        }
+      }
+    }
+  }
+
+  > div {
+  }
+}
