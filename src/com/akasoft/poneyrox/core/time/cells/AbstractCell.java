@@ -65,6 +65,9 @@ public abstract class AbstractCell {
         this.ask = ask;
         this.bid = bid;
         this.finalized = false;
+
+        this.ask.setOwner(this);
+        this.bid.setOwner(this);
     }
 
     /**
@@ -73,6 +76,14 @@ public abstract class AbstractCell {
      */
     public long getStart() {
         return this.start;
+    }
+
+    /**
+     *  Retourne le point situé au milieu de la cellule.
+     *  @return Point situé au milieu de la cellule.
+     */
+    public long getMiddle() {
+        return this.start + ((this.owner.getEntity().getSize() * 1000) / 2);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.akasoft.poneyrox.core.strategies.parameters;
 
 import com.akasoft.poneyrox.core.time.clusters.Cluster;
+import net.finmath.marketdata.model.curves.ForwardCurve;
 
 import java.util.Arrays;
 
@@ -95,6 +96,24 @@ public class VariationParameter extends AbstractParameter<VariationType> {
     }
 
     /**
+     *  Retourne la courbe d'avancement rattachée à un mode de variation.
+     *  @param cluster Cellule évaluée.
+     *  @param type Mode de variation.
+     *  @return Valeur correspondante.
+     */
+    public static ForwardCurve getCurveByVariation(Cluster cluster, VariationType type) {
+        switch (type) {
+            case MINIMUM:
+                return cluster.getCurveMinimum();
+            case MAXIMUM:
+                return cluster.getCurveMaximum();
+            case AVERAGE:
+            default:
+                return cluster.getCurveAverage();
+        }
+    }
+
+    /**
      *  Affecte une valeur d'opposition par type.
      *  @param cluster Noeud modifié.
      *  @param variation Variation.
@@ -127,6 +146,25 @@ public class VariationParameter extends AbstractParameter<VariationType> {
                     cluster.setBottomMaximum(value);
                     break;
             }
+        }
+    }
+
+    /**
+     *  Affecte une courbe d'avancement par type.
+     *  @param cluster Noeud modifié.
+     *  @param variation Variation.
+     *  @param value Valeur affectée.
+     */
+    public static void setForwardByVariation(Cluster cluster, VariationType variation, ForwardCurve value) {
+        switch (variation) {
+            case MINIMUM:
+                cluster.setCurveMinimum(value);
+            case AVERAGE:
+                cluster.setCurveAverage(value);
+            case MAXIMUM:
+            default:
+                cluster.setCurveMaximum(value);
+                break;
         }
     }
 }

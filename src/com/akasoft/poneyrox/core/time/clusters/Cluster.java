@@ -2,16 +2,34 @@ package com.akasoft.poneyrox.core.time.clusters;
 
 import com.akasoft.poneyrox.core.strategies.parameters.VariationParameter;
 import com.akasoft.poneyrox.core.strategies.parameters.VariationType;
+import com.akasoft.poneyrox.core.time.cells.AbstractCell;
 import com.akasoft.poneyrox.exceptions.InnerException;
 import com.akasoft.poneyrox.views.ClusterViews;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
+import net.finmath.marketdata.model.curves.ForwardCurve;
+import net.finmath.marketdata.products.Forward;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *  Noeud.
  *  Classe représentative d'une consolidation de taux - offre ou demande - sur une période donnée.
  */
 public class Cluster {
+    /**
+     *  Nombre maximum de cellules évaluées lors du calcul de la courbe d'avancement.
+     */
+    private static final int FORWARD_SIZE = 64;
+
+    /**
+     *  Cellule propriétaire.
+     */
+    @JsonIgnore
+    private AbstractCell owner;
+
     /**
      *  Taux minimum.
      */
@@ -93,6 +111,24 @@ public class Cluster {
     private Cluster previous;
 
     /**
+     *  Courbe d'avancement basée sur le minimum.
+     */
+    @JsonIgnore
+    private ForwardCurve curveMinimum;
+
+    /**
+     *  Courbe d'avancement basée sur la moyenne.
+     */
+    @JsonIgnore
+    private ForwardCurve curveAverage;
+
+    /**
+     *  Courbe d'avancement basée sur le maximum.
+     */
+    @JsonIgnore
+    private ForwardCurve curveMaximum;
+
+    /**
      *  Constructeur.
      *  @param previous Noeud précédent si applicable.
      *  @param initial Taux initial.
@@ -122,6 +158,14 @@ public class Cluster {
         this.maximum = maximum;
         this.last = average;
         this.direction = direction;
+    }
+
+    /**
+     *  Retourne la cellule propriétaire.
+     *  @return Cellule propriétaire.
+     */
+    public AbstractCell getOwner() {
+        return this.owner;
     }
 
     /**
@@ -213,11 +257,43 @@ public class Cluster {
     }
 
     /**
+     *  Retourne la courbe d'avancement minimum.
+     *  @return Courbe d'avancement minimum.
+     */
+    public ForwardCurve getCurveMinimum() {
+        return this.curveMinimum;
+    }
+
+    /**
+     *  Retourne la courbe d'avancement moyenne.
+     *  @return Courbe d'avancement moyenne.
+     */
+    public ForwardCurve getCurveAverage() {
+        return this.curveAverage;
+    }
+
+    /**
+     *  Retourne la courbe d'avancement maximum.
+     *  @return Courbe d'avancement maximum.
+     */
+    public ForwardCurve getCurveMaximum() {
+        return this.curveMaximum;
+    }
+
+    /**
      *  Retourne le noeud précédent.
      *  @return Noeud précédent.
      */
     public Cluster getPrevious() {
         return this.previous;
+    }
+
+    /**
+     *  Définit la cellule propriétaire.
+     *  @param owner Cellule propriétaire.
+     */
+    public void setOwner(AbstractCell owner) {
+        this.owner = owner;
     }
 
     /**
@@ -309,6 +385,30 @@ public class Cluster {
     }
 
     /**
+     *  Définit la courbe d'avancement rattachée au taux minimum.
+     *  @param curve Courbe affectée.
+     */
+    public void setCurveMinimum(ForwardCurve curve) {
+        this.curveMinimum = curve;
+    }
+
+    /**
+     *  Définit la courbe d'avancement rattachée au taux moyen.
+     *  @param curve Courbe affectée.
+     */
+    public void setCurveAverage(ForwardCurve curve) {
+        this.curveAverage = curve;
+    }
+
+    /**
+     *  Définit la courbe d'avancement rattachée au taux maximum.
+     *  @param curve Courbe affectée.
+     */
+    public void setCurveMaximum(ForwardCurve curve) {
+        this.curveMaximum = curve;
+    }
+
+    /**
      *  Définit le noeud précédent.
      *  @param previous Noeud précédent.
      */
@@ -330,23 +430,22 @@ public class Cluster {
             this.topMaximum = true;
         } else {
             for (VariationType type : VariationType.values()) {
-                this.finalizeOpposites(this.previous, this, true, type);
-                this.finalizeOpposites(this.previous, this, false, type);
+                this.finalizeOpposites(true, type);
+                this.finalizeOpposites(false, type);
+                this.finalizeForward(type);
             }
         }
     }
 
     /**
      *  Finalise une liste d'oppositions.
-     *  @param previous Noeud précédent.
-     *  @param current Noeud courant.
      *  @param type Type d'opposition recherchée (true : sommet, false : repli).
      *  @param variation Variation évaluée.
      */
-    private void finalizeOpposites(Cluster previous, Cluster current, boolean type, VariationType variation) {
+    private void finalizeOpposites(boolean type, VariationType variation) {
         /* Récupération des taux */
-        double previousRate = VariationParameter.getRateByVariation(previous, variation);
-        double currentRate = VariationParameter.getRateByVariation(current, variation);
+        double previousRate = VariationParameter.getRateByVariation(this.getPrevious(), variation);
+        double currentRate = VariationParameter.getRateByVariation(this, variation);
 
         /* Indicateur.
            Valeur indiquant si le noeud courant constitue une nouvelle opposition (sommet ou repli). */
@@ -356,20 +455,49 @@ public class Cluster {
         if (previousRate == currentRate) {
             /* Egalité */
             boolean previousValue = VariationParameter.getOppositeByVariation(previous, variation, type);
-            VariationParameter.setOppositeByVariation(current, variation, type, previousValue);
+            VariationParameter.setOppositeByVariation(this, variation, type, previousValue);
         } else if (record) {
             /* Nouveau record */
-            VariationParameter.setOppositeByVariation(current, variation, type, true);
+            VariationParameter.setOppositeByVariation(this, variation, type, true);
 
             /* Nettoyage des cellules précédentes */
-            Cluster buffer = previous;
+            Cluster buffer = this.getPrevious();
             while (buffer != null && VariationParameter.getOppositeByVariation(buffer, variation, type)) {
                 VariationParameter.setOppositeByVariation(buffer, variation, type, false);
                 buffer = buffer.getPrevious();
             }
         } else {
             /* Inversion de la courbe */
-            VariationParameter.setOppositeByVariation(current, variation, type, false);
+            VariationParameter.setOppositeByVariation(this, variation, type, false);
         }
+    }
+
+    /**
+     *  Calcule une courbe d'avancement.
+     *  @param variation Type de variation évaluée.
+     */
+    private void finalizeForward(VariationType variation) {
+        /* Création de l'historique */
+        List<Cluster> history = new ArrayList<>();
+        history.add(this);
+
+        /* Récupération */
+        Cluster buffer = this.getPrevious();
+        for (int i = 0; i < Cluster.FORWARD_SIZE && buffer != null; i++) {
+            history.add(buffer);
+        }
+        Collections.reverse(history);
+
+        /* Récupération des taux */
+        double[] rates = new double[history.size()];
+        double[] times = new double[history.size()];
+        for (int i = 0; i < history.size(); i++) {
+            rates[i] = VariationParameter.getRateByVariation(history.get(i), variation);
+            times[i] = history.get(i).getOwner().getMiddle();
+        }
+
+        /* Création de la courbe */
+        ForwardCurve fc = ForwardCurve.createForwardCurveFromForwards("FC" + this.toString(), times, rates, 0);
+        VariationParameter.setForwardByVariation(this, variation, fc);
     }
 }
