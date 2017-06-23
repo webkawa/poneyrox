@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/poneyrox-prod.iml" filepath="$PROJECT_DIR$/.idea/poneyrox-prod.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ang/ang.iml" filepath="$PROJECT_DIR$/ang/ang.iml" />
+      <module fileurl="file://$PROJECT_DIR$/poneyrox.iml" filepath="$PROJECT_DIR$/poneyrox.iml" />
     </modules>
   </component>
 </project>
