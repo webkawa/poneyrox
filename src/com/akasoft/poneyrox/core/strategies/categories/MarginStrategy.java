@@ -172,8 +172,7 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
         if ("profit".equals(key)) {
             this.profit = (Double) value;
             return true;
-        }
-        if ("loss".equals(key)) {
+        } else if ("loss".equals(key)) {
             this.loss = (Double) value;
             return true;
         }

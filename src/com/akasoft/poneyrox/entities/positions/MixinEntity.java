@@ -9,10 +9,7 @@ import com.akasoft.poneyrox.core.strategies.categories.AbstractStrategy;
 import com.akasoft.poneyrox.core.time.cells.AbstractCell;
 import com.akasoft.poneyrox.core.time.curves.AbstractCurve;
 import com.akasoft.poneyrox.entities.markets.TimelineEntity;
-import com.akasoft.poneyrox.entities.strategies.ChaosStrategyEntity;
-import com.akasoft.poneyrox.entities.strategies.GrowthStrategyEntity;
-import com.akasoft.poneyrox.entities.strategies.MarginStrategyEntity;
-import com.akasoft.poneyrox.entities.strategies.OppositesStrategyEntity;
+import com.akasoft.poneyrox.entities.strategies.*;
 import com.akasoft.poneyrox.exceptions.InnerException;
 
 import javax.persistence.*;
@@ -128,6 +125,17 @@ public class MixinEntity {
     private double oppositesWeight;
 
     /**
+     *  Stratégie d'avancement.
+     */
+    @ManyToOne
+    private ForwardStrategyEntity forwardInstance;
+
+    /**
+     *  Poids de la stratégie d'avancement.
+     */
+    private double forwardWeight;
+
+    /**
      *  Clef de hachage.
      */
     private int hash;
@@ -218,7 +226,7 @@ public class MixinEntity {
 
     /**
      *  Retourne la stratégie d'opposition.
-     *  @return Poids de la stratégie d'opposition.
+     *  @return Stratégie d'opposition.
      */
     public OppositesStrategyEntity getOppositesInstance() {
         return this.oppositesInstance;
@@ -230,6 +238,22 @@ public class MixinEntity {
      */
     public double getOppositesWeight() {
         return this.oppositesWeight;
+    }
+
+    /**
+     *  Retourne la stratégie d'avancement.
+     *  @return Stratégie d'avancement.
+     */
+    public ForwardStrategyEntity getForwardInstance() {
+        return this.forwardInstance;
+    }
+
+    /**
+     *  Retourne le poids de la stratégie d'avancement.
+     *  @return Poids de la stratégie d'avancement.
+     */
+    public double getForwardWeight() {
+        return this.forwardWeight;
     }
 
     /**
@@ -321,6 +345,22 @@ public class MixinEntity {
     }
 
     /**
+     *  Affecte la stratégie d'avancement.
+     *  @param forwardInstance Stratégie d'avancement.
+     */
+    public void setForwardInstance(ForwardStrategyEntity forwardInstance) {
+        this.forwardInstance = forwardInstance;
+    }
+
+    /**
+     *  Affecte le poids de la stratégie d'avancement.
+     *  @param forwardWeight Poids de la stratégie d'avancement.
+     */
+    public void setForwardWeight(double forwardWeight) {
+        this.forwardWeight = forwardWeight;
+    }
+
+    /**
      *  Définit la clef de hachage.
      *  @param hash Clef de hachage.
      */
@@ -404,6 +444,9 @@ public class MixinEntity {
         if (this.oppositesInstance != null) {
             result.add(new Object[] { this.oppositesInstance.asStrategy(), this.oppositesWeight });
         }
+        if (this.forwardInstance != null) {
+            result.add(new Object[] { this.forwardInstance.asStrategy(), this.forwardWeight });
+        }
         return result;
     }
 
@@ -423,6 +466,8 @@ public class MixinEntity {
                 this.chaosInstance == null ? 0 : this.chaosInstance.getId(),
                 this.chaosWeight,
                 this.oppositesInstance == null ? 0 : this.oppositesInstance.getId(),
-                this.oppositesWeight);
+                this.oppositesWeight,
+                this.forwardInstance == null ? 0 : this.forwardInstance.getId(),
+                this.forwardWeight);
     }
 }
