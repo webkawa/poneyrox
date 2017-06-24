@@ -6,10 +6,7 @@ import com.akasoft.poneyrox.core.mixins.batch.EntryBatch;
 import com.akasoft.poneyrox.core.mixins.batch.ExitBatch;
 import com.akasoft.poneyrox.core.mixins.leads.EntryLead;
 import com.akasoft.poneyrox.core.mixins.leads.ExitLead;
-import com.akasoft.poneyrox.core.strategies.categories.ChaosStrategy;
-import com.akasoft.poneyrox.core.strategies.categories.GrowthStrategy;
-import com.akasoft.poneyrox.core.strategies.categories.MarginStrategy;
-import com.akasoft.poneyrox.core.strategies.categories.OppositesStrategy;
+import com.akasoft.poneyrox.core.strategies.categories.*;
 import com.akasoft.poneyrox.core.strategies.interfaces.EnterLongITF;
 import com.akasoft.poneyrox.core.strategies.interfaces.EnterShortITF;
 import com.akasoft.poneyrox.core.strategies.interfaces.ExitLongITF;
@@ -155,6 +152,10 @@ public class ManagerComponent {
         this.scheduler.scheduleAtFixedRate(task, 10000);
 
         task = new StrategyTask(this, OppositesStrategy.class);
+        this.strategies.add(task);
+        this.scheduler.scheduleAtFixedRate(task, 10000);
+
+        task = new StrategyTask(this, ForwardStrategy.class);
         this.strategies.add(task);
         this.scheduler.scheduleAtFixedRate(task, 10000);
 
