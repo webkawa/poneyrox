@@ -3,15 +3,15 @@ package com.akasoft.poneyrox.core.strategies.categories;
 import com.akasoft.poneyrox.core.strategies.interfaces.EnterLongITF;
 import com.akasoft.poneyrox.core.strategies.interfaces.EnterShortITF;
 import com.akasoft.poneyrox.core.strategies.interfaces.ObserverITF;
-import com.akasoft.poneyrox.core.strategies.parameters.AbstractParameter;
-import com.akasoft.poneyrox.core.strategies.parameters.BinaryParameter;
-import com.akasoft.poneyrox.core.strategies.parameters.DoubleParameter;
-import com.akasoft.poneyrox.core.strategies.parameters.IntegerParameter;
+import com.akasoft.poneyrox.core.strategies.parameters.*;
 import com.akasoft.poneyrox.core.time.cells.AbstractCell;
+import com.akasoft.poneyrox.core.time.clusters.Cluster;
 import com.akasoft.poneyrox.core.time.curves.AbstractCurve;
 import com.akasoft.poneyrox.entities.strategies.ForwardStrategyEntity;
 import com.akasoft.poneyrox.entities.strategies.GrowthStrategyEntity;
 import com.akasoft.poneyrox.exceptions.InnerException;
+import net.finmath.marketdata.model.AnalyticModelInterface;
+import net.finmath.marketdata.model.curves.ForwardCurve;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,10 +101,15 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
     private double difference;
 
     /**
-     *  Score réalisé.
+     *  Score réalisé sur la demande.
      *  Exprimé en pourcentage de différence avec l'estimation initiale.
      */
-    private double score;
+    private double askScore;
+
+    /**
+     *  Score réalisé sur l'offre.
+     */
+    private double bidScore;
 
     /**
      *  Constructeur.
@@ -242,9 +247,28 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
      */
     @Override
     public void consolidate(AbstractCurve curve, List<AbstractCell> cells) {
-        /* TODO */
-    }
+        /* Extraction de la taille des cellules */
+        long size = curve.getEntity().getSize() * 1000;
 
+        /* Récupération de la cellule de départ de la courbe */
+        AbstractCell start = cells.get(0);
+        AbstractCell middle = cells.get(cells.size() - this.offset - 1);
+
+        /* Calcul de l'instant évalué */
+        long target = middle.getMiddle() + ((this.offset + this.forward) * size);
+
+        /* Recherche d'une cellule correspondant à l'instant évalué */
+        AbstractCell buffer = cells.get(cells.size() - 1);
+        AbstractCell end = null;
+        while (target < buffer.getStart() + size) {
+            end = buffer;
+            buffer = buffer.getPrevious();
+        }
+
+        /* Affectation */
+        this.askScore = this.consolidateOne(true, start, middle, target, end);
+        this.bidScore = this.consolidateOne(false, start, middle, target, end);
+    }
 
     /**
      *  Indique si la stratégie doit engager une position longue.
@@ -252,7 +276,7 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
      */
     @Override
     public boolean mustEnterLong() {
-        return false; /* TODO */
+        return this.bidScore > this.difference;
     }
 
     /**
@@ -261,9 +285,8 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
      */
     @Override
     public boolean mustEnterShort() {
-        return false; /* TODO */
+        return this.askScore > this.difference;
     }
-
 
     /**
      *  Retourne une copie de l'objet.
@@ -286,5 +309,57 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
                 this.backward,
                 this.offset,
                 this.difference);
+    }
+
+    /**
+     *  Consolidation du résultat pour un type de courbe.
+     *  @param type Type évalué (true : offre, false : demande).
+     *  @param start Cellule de départ.
+     *  @param middle Cellule intermédiaire.
+     *  @param target Point évalué.
+     *  @param end Cellule de fin si disponible.
+     */
+    private double consolidateOne(boolean type, AbstractCell start, AbstractCell middle, long target, AbstractCell end) {
+        /* Récupération des noeuds */
+        Cluster startCluster, middleCluster, endCluster;
+        if (type) {
+            startCluster = start.getAsk();
+            middleCluster = middle.getAsk();
+            endCluster = end == null ? null : end.getAsk();
+        } else {
+            startCluster = start.getBid();
+            middleCluster = middle.getBid();
+            endCluster = end == null ? null : end.getBid();
+        }
+
+        /* Récupération de la courbe */
+        ForwardCurve fc = VariationParameter.getCurveByVariation(startCluster, super.getMode());
+
+        /* Récupération de la valeur */
+        double projection = fc.getValue(target);
+
+        /* Traitement.
+         * Si la cellule de fin est précisée, le calcul s'effectue sur la différence entre le taux constaté sur cette
+         * dernière et les prévisions initiales.
+         * Sinon, le calcul s'effectue sur la base de la croissance moyenne entre le point de départ et le point
+         * intermédiaire, en comparaison des prévisions initiales. */
+        double startRate = VariationParameter.getRateByVariation(startCluster, super.getMode());
+        double endRate = 0;
+        if (end == null) {
+            /* Récupération du taux intermédiaire */
+            double middleRate = VariationParameter.getRateByVariation(middleCluster, super.getMode());
+
+            /* Calcul de l'évolution */
+            double evolution = (middleRate - startRate) / this.backward;
+
+            /* Calcul du taux final espéré */
+            endRate = middleRate + (evolution * this.forward);
+        } else {
+            /* Calcul direct du taux en fin */
+            endRate = VariationParameter.getRateByVariation(endCluster, super.getMode());
+        }
+
+        /* Calcul du score */
+        return (endRate - projection) / Math.abs(projection - startRate) * 100;
     }
 }
