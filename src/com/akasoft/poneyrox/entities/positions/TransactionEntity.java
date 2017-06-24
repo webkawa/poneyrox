@@ -62,6 +62,12 @@ public class TransactionEntity {
     private PositionEntity position;
 
     /**
+     *  Portefeuille lié.
+     */
+    @ManyToOne
+    private WalletEntity wallet;
+
+    /**
      *  Retourne l'identifiant.
      *  @return Identifiant.
      */
@@ -126,6 +132,14 @@ public class TransactionEntity {
     }
 
     /**
+     *  Retourne le portefeuille lié.
+     *  @return Portefeuille lié.
+     */
+    public WalletEntity getWallet() {
+        return this.wallet;
+    }
+
+    /**
      *  Définit la clef étrangère.
      *  @param foreign Valeur affectée.
      */
@@ -179,5 +193,13 @@ public class TransactionEntity {
      */
     public void setPosition(PositionEntity position) {
         this.position = position;
+    }
+
+    /**
+     *  Définit le portefeuille lié.
+     *  @param wallet Valeur affectée.
+     */
+    public void setWallet(WalletEntity wallet) {
+        this.wallet = wallet;
     }
 }

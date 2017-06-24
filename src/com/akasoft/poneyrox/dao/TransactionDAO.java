@@ -42,6 +42,7 @@ public class TransactionDAO extends AbstractDAO {
         result.setEntry(entry);
         result.setSize(size);
         result.setPosition(position);
+        result.setWallet(wallet);
 
         super.getSession().persist(result);
         return result;

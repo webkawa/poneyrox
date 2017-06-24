@@ -216,7 +216,7 @@ public abstract class FollowerTaskWrapper extends AbstractTask {
      */
     protected synchronized void removeVirtualBuffer(AbstractCurve curve, List<TransactionEntity> entities) {
         synchronized (this.virtualBuffer) {
-            this.virtualBuffer.get(curve).remove(entities);
+            this.virtualBuffer.get(curve).removeAll(entities);
         }
     }
 }
