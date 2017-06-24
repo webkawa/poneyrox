@@ -40,7 +40,9 @@ import java.util.*;
                         "AND mx.chaosInstance = :chaosInstance " +
                         "AND mx.chaosWeight = :chaosWeight " +
                         "AND mx.oppositesInstance = :oppositesInstance " +
-                        "AND mx.oppositesWeight = :oppositesWeight"
+                        "AND mx.oppositesWeight = :oppositesWeight " +
+                        "AND mx.forwardInstance = :forwardInstance " +
+                        "AND mx.forwardWeight = :forwardWeight"
         ),
         @NamedQuery(
                 name = "Mixin.selectAverageEntryPonderations",
@@ -133,6 +135,7 @@ public class MixinEntity {
     /**
      *  Poids de la stratégie d'avancement.
      */
+    @Column(nullable = false)
     private double forwardWeight;
 
     /**

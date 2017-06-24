@@ -77,6 +77,7 @@ public class FollowerTask extends FollowerTaskWrapper {
 
             /* Traitement */
             List<PositionEntity> removes = this.treat(curve, positions);
+            List<TransactionEntity> cleanup = new ArrayList<>();
 
             /* Cloture des transactions */
             for (PositionEntity remove : removes) {
@@ -89,6 +90,7 @@ public class FollowerTask extends FollowerTaskWrapper {
 
                     /* Cloture */
                     WhaleClubPositionDTO dto = this.access.closePosition(transaction);
+                    cleanup.add(transaction);
                     this.transactionDAO.closeTransaction(transaction, dto.getClosePrice(), dto.getProfit(), dto.getFinancing());
 
                     /* Affichage */
@@ -98,6 +100,9 @@ public class FollowerTask extends FollowerTaskWrapper {
                     cause.printStackTrace();
                 }
             }
+
+            /* Nettoyage */
+            super.removeVirtualBuffer(curve, cleanup);
         }
 
         /* Parcours des positions suivies */

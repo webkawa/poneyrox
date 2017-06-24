@@ -161,11 +161,7 @@ public class ManagerComponent {
 
         /* Mixeur */
         this.mixer = new MixerTask(this);
-        this.scheduler.scheduleAtFixedRate(this.mixer, 7500);
-
-        /* Nettoyage */
-        this.positionDAO.deleteUselessPositions(PositionType.SIMULATION, new java.util.Date().getTime());
-        this.positionDAO.deleteUselessPositions(PositionType.TEST, new java.util.Date().getTime());
+        this.scheduler.scheduleAtFixedRate(this.mixer, 15000);
     }
 
     /**

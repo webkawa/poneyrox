@@ -22,7 +22,7 @@ public class SessionFactoryConfiguration extends LocalSessionFactoryBean {
         properties.put("hibernate.default_schema", "public");
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL95Dialect");
         properties.put("hibernate.show_sql", "false");
-        properties.put("hibernate.hbm2ddl.auto", "create");
+        properties.put("hibernate.hbm2ddl.auto", "validate");
 
         /* Définition de l'objet */
         super.setDataSource(dataSource);

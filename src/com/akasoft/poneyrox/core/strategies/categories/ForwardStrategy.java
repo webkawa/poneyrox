@@ -23,7 +23,7 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
     /**
      *  Nombre minimum de cellules d'avance.
      */
-    private static final int MINIMUM_FORWARD = 1;
+    private static final int MINIMUM_FORWARD = 2;
 
     /**
      *  Nombre maximum de cellules d'avance.
@@ -38,7 +38,7 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
     /**
      *  Nombre minimum de cellules de retard.
      */
-    private static final int MINIMUM_BACKWARD = 1;
+    private static final int MINIMUM_BACKWARD = 2;
 
     /**
      *  Nombre maximum de cellules de retard.
@@ -225,13 +225,13 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
     @Override
     protected boolean consumeInnerParameter(String key, Object value) throws InnerException {
         if ("forward".equals(key)) {
-            this.forward = (Integer) value;
+            this.forward = Math.toIntExact((Long) value);
             return true;
         } else if ("backward".equals(key)) {
-            this.backward = (Integer) value;
+            this.backward = Math.toIntExact((Long) value);
             return true;
         } else if ("offset".equals(key)) {
-            this.offset = (Integer) value;
+            this.offset = Math.toIntExact((Long) value);
             return true;
         } else if ("difference".equals(key)) {
             this.difference = (Double) value;
@@ -335,31 +335,40 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
         /* Récupération de la courbe */
         ForwardCurve fc = VariationParameter.getCurveByVariation(startCluster, super.getMode());
 
-        /* Récupération de la valeur */
-        double projection = fc.getValue(target);
+        /* Vérification de disponibilité */
+        if (fc != null) {
+            /* Récupération de la valeur */
+            double projection = fc.getValue(target);
 
-        /* Traitement.
-         * Si la cellule de fin est précisée, le calcul s'effectue sur la différence entre le taux constaté sur cette
-         * dernière et les prévisions initiales.
-         * Sinon, le calcul s'effectue sur la base de la croissance moyenne entre le point de départ et le point
-         * intermédiaire, en comparaison des prévisions initiales. */
-        double startRate = VariationParameter.getRateByVariation(startCluster, super.getMode());
-        double endRate = 0;
-        if (end == null) {
+            /* Traitement.
+             * Si la cellule de fin est précisée, le calcul s'effectue sur la différence entre le taux constaté sur cette
+             * dernière et les prévisions initiales.
+             * Sinon, le calcul s'effectue sur la base de la croissance moyenne entre le point de départ et le point
+             * intermédiaire, en comparaison des prévisions initiales. */
+            double startRate = VariationParameter.getRateByVariation(startCluster, super.getMode());
+            double endRate = 0;
+            if (end == null) {
             /* Récupération du taux intermédiaire */
-            double middleRate = VariationParameter.getRateByVariation(middleCluster, super.getMode());
+                double middleRate = VariationParameter.getRateByVariation(middleCluster, super.getMode());
 
             /* Calcul de l'évolution */
-            double evolution = (middleRate - startRate) / this.backward;
+                double evolution = (middleRate - startRate) / this.backward;
 
             /* Calcul du taux final espéré */
-            endRate = middleRate + (evolution * this.forward);
-        } else {
+                endRate = middleRate + (evolution * this.forward);
+            } else {
             /* Calcul direct du taux en fin */
-            endRate = VariationParameter.getRateByVariation(endCluster, super.getMode());
-        }
+                endRate = VariationParameter.getRateByVariation(endCluster, super.getMode());
+            }
 
-        /* Calcul du score */
-        return (endRate - projection) / Math.abs(projection - startRate) * 100;
+            /* Calcul du score */
+            if ((projection - startRate) == 0) {
+                return 0;
+            } else {
+                return (endRate - projection) / Math.abs(projection - startRate) * 100;
+            }
+        } else {
+            return -Double.MIN_VALUE;
+        }
     }
 }

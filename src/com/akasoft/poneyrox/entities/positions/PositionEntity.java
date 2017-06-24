@@ -80,24 +80,30 @@ import java.util.UUID;
                         "   AND SUM(pos.timeoutScore) = 0 " +
                         "ORDER BY AVG(pos.dailyProfit) DESC "),
         @NamedQuery(
-                name = "Position.deleteFailedSimulations",
-                query = "DELETE FROM PositionEntity pos " +
-                        "WHERE pos.open = false " +
-                        "AND pos.type = :type " +
-                        "AND pos.start < :start " +
-                        "AND (" +
-                        "   pos.dailyProfit < :daily " +
-                        "   OR pos.timeout = true" +
-                        ")"
-        ),
-        @NamedQuery(
-                name = "Position.deleteUselessPositions",
+                name = "Position.deleteExpiredSimulations",
                 query = "DELETE FROM PositionEntity pos " +
                         "WHERE pos.type = :type " +
-                        "AND pos.start < :start " +
-                        "AND (" +
-                        "   pos.open = true " +
-                        "   OR pos.timeout = true)"
+                        "AND pos.timeout = true"
+        ),
+        @NamedQuery(
+                name = "Position.deleteUntestedSimulations",
+                query = "DELETE FROM PositionEntity AS pos " +
+                        "WHERE pos.id IN (" +
+                        "   SELECT eq.id " +
+                        "   FROM PositionEntity AS eq " +
+                        "   LEFT JOIN PositionEntity AS cp " +
+                        "   ON eq.timeline = cp.timeline " +
+                        "   AND eq.smooth = cp.smooth " +
+                        "   AND eq.mode = cp.mode " +
+                        "   AND eq.entryMix = cp.entryMix " +
+                        "   AND eq.exitMix = cp.exitMix " +
+                        "   AND NOT(eq.id = cp.id) " +
+                        "   WHERE cp IS NULL " +
+                        "   AND eq.open = false " +
+                        "   AND eq.start < :start " +
+                        "   AND eq.type = :type " +
+                        "   AND eq.dailyProfit < :profit" +
+                        ")"
         )
 })
 public class PositionEntity {

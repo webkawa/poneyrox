@@ -6,6 +6,7 @@ import com.akasoft.poneyrox.entities.markets.TimelineEntity;
 import com.akasoft.poneyrox.entities.positions.MixinEntity;
 import com.akasoft.poneyrox.entities.positions.PositionEntity;
 import com.akasoft.poneyrox.entities.positions.PositionType;
+import com.akasoft.poneyrox.exceptions.InnerException;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -144,30 +145,31 @@ public class PositionDAO extends AbstractDAO {
     }
 
     /**
-     *  Supprime l'ensemble des simulations plus anciennes qu'une date donnée et présentant un seuil
-     *  de rentabilité journalier inférieur à un score donné.
-     *  @param start Date de départ.
-     *  @param minimum Score minimum pour suppression (négatif !).
+     *  Supprime l'ensemble des simulations expirées.
      */
-    public void deleteFailedSimulations(long start, double minimum) {
+    public void deleteExpiredSimulations() {
         super.getSession()
-                .getNamedQuery("Position.deleteFailedSimulations")
+                .getNamedQuery("Position.deleteExpiredSimulations")
                 .setParameter("type", PositionType.SIMULATION)
-                .setParameter("start", start)
-                .setParameter("daily", minimum)
                 .executeUpdate();
     }
 
     /**
-     *  Nettoie les positions d'un type donné dont la date de départ précède une date passée en paramètre.
-     *  @param type Type de position.
+     *  Supprime les simulations non-retenues pour des tests complémentaires.
      *  @param start Date de départ.
+     *  @param profit Profit journalier minimum (négatif !).
+     *  @throws InnerException En cas d'erreur interne.
      */
-    public void deleteUselessPositions(PositionType type, long start) {
+    public void deleteUntestedSimulations(long start, double profit) throws InnerException {
+        if (profit > 0) {
+            throw new InnerException("Try to delete positive simulations...");
+        }
+
         super.getSession()
-                .getNamedQuery("Position.deleteUselessPositions")
-                .setParameter("type", type)
+                .getNamedQuery("Position.deleteUntestedSimulations")
+                .setParameter("type", PositionType.SIMULATION)
                 .setParameter("start", start)
+                .setParameter("profit", profit)
                 .executeUpdate();
     }
 

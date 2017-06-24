@@ -93,9 +93,9 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
         }
 
         /* Nettoyage des simulations les plus anciennes */
-        long expiration = new java.util.Date().getTime() - super.getWallet().getRetentionDelay();
-        this.positionDAO.deleteFailedSimulations(expiration, super.getWallet().getRetentionProfit());
-        this.positionDAO.deleteUselessPositions(PositionType.SIMULATION, expiration);
+        long expiration = new java.util.Date().getTime() - super.getWallet().getTimeout();
+        this.positionDAO.deleteExpiredSimulations();
+        this.positionDAO.deleteUntestedSimulations(expiration, super.getWallet().getRetentionProfit());
 
         /* Rafraichissement du portefeuille */
         WalletEntity wallet = this.walletDAO.refreshWallet(this.getManager().getWallet());

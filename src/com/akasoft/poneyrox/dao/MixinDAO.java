@@ -42,24 +42,32 @@ public class MixinDAO extends AbstractDAO {
     private OppositesStrategyDAO oppositesStrategyDAO;
 
     /**
+     *  DAO des stratégies basées sur l'avancement.
+     */
+    private ForwardStrategyDAO forwardStrategyDAO;
+
+    /**
      *  Constructeur.
      *  @param factory Générateur de sessions.
      *  @param chaosStrategyDAO DAO des stratégies basées sur le niveau de chaos.
      *  @param growthStrategyDAO DAO des stratégies basées sur le niveau de croissance.
      *  @param marginStrategyDAO DAO des stratégies basées sur la marge.
      *  @param oppositesStrategyDAO DAO des stratégies basées sur les oppositions.
+     *  @param forwardStrategyDAO DAO des stratégies basées sur l'avancement.
      */
     public MixinDAO(
             @Autowired SessionFactory factory,
             @Autowired ChaosStrategyDAO chaosStrategyDAO,
             @Autowired GrowthStrategyDAO growthStrategyDAO,
             @Autowired MarginStrategyDAO marginStrategyDAO,
-            @Autowired OppositesStrategyDAO oppositesStrategyDAO) {
+            @Autowired OppositesStrategyDAO oppositesStrategyDAO,
+            @Autowired ForwardStrategyDAO forwardStrategyDAO) {
         super(factory);
         this.chaosStrategyDAO = chaosStrategyDAO;
         this.growthStrategyDAO = growthStrategyDAO;
         this.marginStrategyDAO = marginStrategyDAO;
         this.oppositesStrategyDAO = oppositesStrategyDAO;
+        this.forwardStrategyDAO = forwardStrategyDAO;
     }
 
     /**
@@ -74,6 +82,8 @@ public class MixinDAO extends AbstractDAO {
      *  @param marginWeight Pondération de la sratégie de marge.
      *  @param oppositesInstance Stratégie d'opposition.
      *  @param oppositesWeight Poids de la stratégie d'opposition.
+     *  @param forwardInstance Stratégie d'avancement.
+     *  @param forwardWeight Poids de la stratégie d'avancement.
      *  @return Entité trouvée ou nul.
      */
     public MixinEntity selectByEquivalence(
@@ -86,7 +96,9 @@ public class MixinDAO extends AbstractDAO {
             MarginStrategyEntity marginInstance,
             double marginWeight,
             OppositesStrategyEntity oppositesInstance,
-            double oppositesWeight) {
+            double oppositesWeight,
+            ForwardStrategyEntity forwardInstance,
+            double forwardWeight) {
         List<MixinEntity> result = super.getSession()
                 .getNamedQuery("Mixin.selectByEquivalence")
                 .setParameter("timeline", timeline)
@@ -99,6 +111,8 @@ public class MixinDAO extends AbstractDAO {
                 .setParameter("marginWeight", marginWeight)
                 .setParameter("oppositesInstance", oppositesInstance)
                 .setParameter("oppositesWeight", oppositesWeight)
+                .setParameter("forwardInstance", forwardInstance)
+                .setParameter("forwardWeight", forwardWeight)
                 .list();
 
         if (result.size() > 0) {
@@ -124,27 +138,6 @@ public class MixinDAO extends AbstractDAO {
         }
 
         return null;
-    }
-
-    /**
-     *  Retourne les pondérations moyennes constatées sur les simulations.
-     *  @return Pondérations moyennes classées par type de stratégie.
-     */
-    public Map<Class<? extends AbstractStrategy>, Double> selectAverageEntryPonderations() {
-        /* Sélection initiale */
-        List<Double[]> list = super.getSession()
-                .getNamedQuery("Mixin.selectAverageEntryPonderations")
-                .setParameter("type", PositionType.SIMULATION)
-                .list();
-        Object[] pre = list.get(0);
-
-        /* Création et alimentation du résultat */
-        Map<Class<? extends AbstractStrategy>, Double> result = new HashMap<>();
-        result.put(GrowthStrategy.class, pre[0] == null ? 0 : (Double) pre[0]);
-        result.put(MarginStrategy.class, pre[1] == null ? 0 : (Double) pre[1]);
-        result.put(ChaosStrategy.class, pre[2] == null ? 0 : (Double) pre[2]);
-        result.put(OppositesStrategy.class, pre[3] == null ? 0 : (Double) pre[3]);
-        return result;
     }
 
     /**
@@ -202,6 +195,14 @@ public class MixinDAO extends AbstractDAO {
                 /* Affectations */
                 mixin.setOppositesInstance(cast);
                 mixin.setOppositesWeight(ponderations[i]);
+            } else if (entity instanceof ForwardStrategyEntity) {
+                /* Recherche de l'équivalence */
+                ForwardStrategyEntity cast = (ForwardStrategyEntity) entity;
+                cast = this.forwardStrategyDAO.retrieveOrPersist(cast);
+
+                /* Affectations */
+                mixin.setForwardInstance(cast);
+                mixin.setForwardWeight(ponderations[i]);
             } else {
                 throw new InnerException("Invalid strategy type");
             }

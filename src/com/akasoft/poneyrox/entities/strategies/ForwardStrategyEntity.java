@@ -3,6 +3,7 @@ package com.akasoft.poneyrox.entities.strategies;
 import com.akasoft.poneyrox.core.strategies.categories.ForwardStrategy;
 import com.akasoft.poneyrox.entities.positions.StrategyEntity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -24,16 +25,19 @@ public class ForwardStrategyEntity extends StrategyEntity<ForwardStrategy> {
     /**
      *  Nombre cellules d'avance considérées.
      */
+    @Column(name = "strategy_forward")
     private int forward;
 
     /**
      *  Nombre de cellules de recul considérées.
      */
+    @Column(name = "strategy_backward")
     private int backward;
 
     /**
      *  Décalage de l'évaluation exprimé en cellules de recul.
      */
+    @Column(name = "strategy_offset")
     private int offset;
 
     /**

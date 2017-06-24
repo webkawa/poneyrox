@@ -208,7 +208,7 @@ public class WhaleClubAccess {
             this.doCheck(response, validators);
             return response.getBody();
         } catch (UnirestException | ApiException cause) {
-            throw new ApiException(cause, "HTTP PUT call to URI '%' failed", uri);
+            throw new ApiException(cause, "HTTP PUT call to URI '%s' failed", uri);
         }
     }
 
