@@ -121,6 +121,19 @@ public class WalletEntity {
     private int prodPool;
 
     /**
+     *  Balance de la production.
+     *  Part accordée au taux moyen brut lors d'une évaluation de performance en comparaison du taux moyen journalier,
+     *  exprimé en base 1.
+     */
+    private double prodBalancing;
+
+    /**
+     *  Risques acceptables par la production.
+     *  Ratio minimum accepté entre le nombre de succès et le nombre d'échecs pour une prise de position en production.
+     */
+    private double prodRisk;
+
+    /**
      *  Finesse de la production.
      *  Nombre maximum de positions évaluées et/ou testées pour passage en production à chaque exécution de la tache de
      *  consolidation.
@@ -176,8 +189,10 @@ public class WalletEntity {
         this.prodPool = 8;
         this.prodGrain = 2048;
         this.prodPeriod = 36 * 60 * 60 * 1000;
-        this.prodPercent = 2;
-        this.prodConfirmations = 9;
+        this.prodPercent = 3;
+        this.prodBalancing = 3;
+        this.prodRisk = 2;
+        this.prodConfirmations = 5;
         this.prodSize = 1000;
     }
 
@@ -347,6 +362,22 @@ public class WalletEntity {
      */
     public double getProdPercent() {
         return this.prodPercent;
+    }
+
+    /**
+     *  Retourne la part accordée au taux relatif face au taux journalier moyen lors de l'évaluation.
+     *  @return Part accordée.
+     */
+    public double getProdBalancing() {
+        return this.prodBalancing;
+    }
+
+    /**
+     *  Retourne le seuil de risque maximum accepté pour un placement en production.
+     *  @return Seuil de risque toléré.
+     */
+    public double getProdRisk() {
+        return this.prodRisk;
     }
 
     /**

@@ -29,12 +29,17 @@ import java.util.UUID;
         @NamedQuery(
                 name = "Position.getTopStrategiesForTesting",
                 query = "SELECT " +
-                        "   AVG(pos.dailyProfit), " +
-                        "   tl, " +
-                        "   pos.smooth, " +
-                        "   pos.mode, " +
-                        "   mxEn, " +
-                        "   mxEx " +
+                        "   AVG(pos.profit) AS rawProfit, " +
+                        "   AVG(pos.relativeProfit) AS relativeProfit, " +
+                        "   AVG(pos.dailyProfit) AS dailyProfit, " +
+                        "   COUNT(pos) AS confirmations, " +
+                        "   SUM(pos.winScore) AS wins, " +
+                        "   SUM(pos.lossScore) AS loss, " +
+                        "   tl AS timeline, " +
+                        "   pos.smooth AS smooth, " +
+                        "   pos.mode AS mode, " +
+                        "   mxEn AS entryMix, " +
+                        "   mxEx AS exitMix " +
                         "FROM PositionEntity pos " +
                         "INNER JOIN pos.timeline AS tl " +
                         "INNER JOIN pos.entryMix AS mxEn " +
@@ -60,17 +65,24 @@ import java.util.UUID;
                         "HAVING " +
                         "   COUNT(pos) < :confirmations " +
                         "   AND SUM(pos.timeoutScore) = 0 " +
-                        "ORDER BY AVG(pos.dailyProfit) DESC "
+                        "ORDER BY " +
+                        "   AVG(pos.relativeProfit) DESC, " +
+                        "   AVG(pos.dailyProfit) DESC"
         ),
         @NamedQuery(
                 name = "Position.getTopStrategiesForProduction",
                 query = "SELECT " +
-                        "   AVG(pos.dailyProfit), " +
-                        "   tl, " +
-                        "   pos.smooth, " +
-                        "   pos.mode, " +
-                        "   mxEn, " +
-                        "   mxEx " +
+                        "   AVG(pos.profit) AS rawProfit, " +
+                        "   AVG(pos.relativeProfit) AS relativeProfit, " +
+                        "   AVG(pos.dailyProfit) AS dailyProfit, " +
+                        "   COUNT(pos) AS confirmations, " +
+                        "   SUM(pos.winScore) AS wins, " +
+                        "   SUM(pos.lossScore) AS loss, " +
+                        "   tl AS timeline, " +
+                        "   pos.smooth AS smooth, " +
+                        "   pos.mode AS mode, " +
+                        "   mxEn AS entryMix, " +
+                        "   mxEx AS exitMix " +
                         "FROM PositionEntity pos " +
                         "INNER JOIN pos.timeline tl " +
                         "INNER JOIN pos.entryMix mxEn " +
@@ -97,7 +109,9 @@ import java.util.UUID;
                         "   AVG(pos.dailyProfit) > :percent " +
                         "   AND COUNT(pos) > :confirmations " +
                         "   AND SUM(pos.timeoutScore) = 0 " +
-                        "ORDER BY AVG(pos.dailyProfit) DESC "),
+                        "ORDER BY " +
+                        "   AVG(pos.relativeProfit) DESC," +
+                        "   AVG(pos.dailyProfit) DESC"),
         @NamedQuery(
                 name = "Position.deleteExpiredSimulations",
                 query = "DELETE FROM PositionEntity AS pos " +
@@ -219,6 +233,12 @@ public class PositionEntity {
     private double profit;
 
     /**
+     *  Pourcentage de profit relatif à l'entrée.
+     */
+    @Formula("(profit / entry) * 100")
+    private double relativeProfit;
+
+    /**
      *  Pourcentage de profit journalier.
      */
     @Formula("(((24 * 1000 * 60 * 60) / (position_end - position_start)) * profit / entry) * 100")
@@ -237,6 +257,18 @@ public class PositionEntity {
      */
     @Formula("CASE WHEN timeout = true THEN 1 ELSE 0 END")
     private int timeoutScore;
+
+    /**
+     *  Egal à 1 si la position a dégagé un bénéfice, 0 sinon.
+     */
+    @Formula("CASE WHEN profit > 0 THEN 1 ELSE 0 END")
+    private int winScore;
+
+    /**
+     *  Egale à 1 si la position a subit une perte, 0 sinon.
+     */
+    @Formula("CASE WHEN profit <= 0 THEN 1 ELSE 0 END")
+    private int lossScore;
 
     /**
      *  Ligne temporelle liée.
@@ -366,8 +398,16 @@ public class PositionEntity {
     }
 
     /**
+     *  Retourne le pourcentage de profit comparé au seuil d'entrée.
+     *  @return Pourcentage de profit.
+     */
+    public double getRelativeProfit() {
+        return this.relativeProfit;
+    }
+
+    /**
      *  Retourne le pourcentage de profit journalier.
-     *  @return Pourcentage de profit.0
+     *  @return Pourcentage de profit.
      */
     public double getDailyProfit() {
         return this.dailyProfit;
@@ -403,6 +443,30 @@ public class PositionEntity {
      */
     public boolean isTimeout() {
         return this.timeout;
+    }
+
+    /**
+     *  Retourne le score rattaché à l'expiration.
+     *  @return Score rattaché.
+     */
+    public int getTimeoutScore() {
+        return this.timeoutScore;
+    }
+
+    /**
+     *  Retourne le score rattaché à une victoire.
+     *  @return Score rattaché.
+     */
+    public int getWinScore() {
+        return this.winScore;
+    }
+
+    /**
+     *  Retourne le score rattaché à une défaite.
+     *  @return Score rattaché.
+     */
+    public int getLossScore() {
+        return this.lossScore;
     }
 
     /**

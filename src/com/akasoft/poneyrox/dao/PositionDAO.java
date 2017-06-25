@@ -1,6 +1,7 @@
 package com.akasoft.poneyrox.dao;
 
 import com.akasoft.poneyrox.dto.PerformanceDTO;
+import com.akasoft.poneyrox.dto.PerformanceTransformer;
 import com.akasoft.poneyrox.entities.markets.RateEntity;
 import com.akasoft.poneyrox.entities.markets.TimelineEntity;
 import com.akasoft.poneyrox.entities.positions.MixinEntity;
@@ -8,6 +9,7 @@ import com.akasoft.poneyrox.entities.positions.PositionEntity;
 import com.akasoft.poneyrox.entities.positions.PositionType;
 import com.akasoft.poneyrox.exceptions.InnerException;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -20,11 +22,17 @@ import java.util.stream.Collectors;
 @Repository
 public class PositionDAO extends AbstractDAO {
     /**
+     *  Retourne le transformateur de performances.
+     */
+    private PerformanceTransformer transformer;
+
+    /**
      *  Constructeur.
      *  @param factory Générateur de sessions.
      */
     public PositionDAO(@Autowired SessionFactory factory) {
         super(factory);
+        this.transformer = new PerformanceTransformer();
     }
 
     /**
@@ -115,15 +123,15 @@ public class PositionDAO extends AbstractDAO {
      *  @return Liste des stratégies les plus performantes.
      */
     public List<PerformanceDTO> getTopStrategiesForTesting(long start, int limit, long confirmations) {
-        List<Object[]> source = super.getSession()
+        return super.getSession()
                 .getNamedQuery("Position.getTopStrategiesForTesting")
                 .setParameter("ttype", PositionType.TEST)
                 .setParameter("vtype", PositionType.VIRTUAL)
                 .setParameter("start", start)
                 .setParameter("confirmations", confirmations)
                 .setMaxResults(limit)
+                .setResultTransformer(this.transformer)
                 .list();
-        return this.toPerformance(source);
     }
 
     /**
@@ -135,7 +143,7 @@ public class PositionDAO extends AbstractDAO {
      *  @return Liste des stratégies les plus performantes.
      */
     public List<PerformanceDTO> getTopStrategiesForProduction(long start, double percent, long confirmations, int limit) {
-        List<Object[]> source =  super.getSession()
+        return super.getSession()
                 .getNamedQuery("Position.getTopStrategiesForProduction")
                 .setParameter("ttype", PositionType.TEST)
                 .setParameter("vtype", PositionType.VIRTUAL)
@@ -143,8 +151,8 @@ public class PositionDAO extends AbstractDAO {
                 .setParameter("percent", percent)
                 .setParameter("confirmations", confirmations)
                 .setMaxResults(limit)
+                .setResultTransformer(this.transformer)
                 .list();
-        return this.toPerformance(source);
     }
 
     /**
@@ -183,25 +191,5 @@ public class PositionDAO extends AbstractDAO {
         super.getSession()
                 .getNamedQuery("Position.deleteAllOpenPositions")
                 .executeUpdate();
-    }
-
-    /**
-     *  Retourne une liste de performances générées à partir d'un résultat brut.
-     *  @param source Résultat brut.
-     *  @return Liste de performances.
-     */
-    private List<PerformanceDTO> toPerformance(List<Object[]> source) {
-        return source.stream()
-                .map(raw -> {
-                    PerformanceDTO result = new PerformanceDTO();
-                    result.setProfit((double) raw[0]);
-                    result.setTimeline((TimelineEntity) raw[1]);
-                    result.setSmooth((int) raw[2]);
-                    result.setMode((boolean) raw[3]);
-                    result.setEntryMix((MixinEntity) raw[4]);
-                    result.setExitMix((MixinEntity) raw[5]);
-                    return result;
-                })
-                .collect(Collectors.toList());
     }
 }

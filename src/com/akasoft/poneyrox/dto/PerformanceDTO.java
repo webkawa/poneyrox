@@ -1,17 +1,48 @@
 package com.akasoft.poneyrox.dto;
 
-import com.akasoft.poneyrox.entities.markets.MarketEntity;
 import com.akasoft.poneyrox.entities.markets.TimelineEntity;
 import com.akasoft.poneyrox.entities.positions.MixinEntity;
+import com.akasoft.poneyrox.entities.positions.WalletEntity;
+import org.hibernate.transform.ResultTransformer;
+
+import java.util.List;
 
 /**
  *  DTO descriptif d'une combinaison stratégique précise.
  */
 public class PerformanceDTO {
     /**
-     *  Profit généré.
+     *  Profit moyen brut.
+     *  Exprimé en valeur brute.
      */
-    private double profit;
+    private double rawProfit;
+
+    /**
+     *  Profit moyen relatif.
+     *  Exprimé en pourcentage du cours à l'entrée.
+     */
+    private double relativeProfit;
+
+    /**
+     *  Profit moyen journalier.
+     *  Exprimé en pourcentage du cours à l'entrée, porté sur une journée.
+     */
+    private double dailyProfit;
+
+    /**
+     *  Nombre total de confirmations.
+     */
+    private int confirmations;
+
+    /**
+     *  Nombre de transactions bénéficiaires.
+     */
+    private int wins;
+
+    /**
+     *  Nombre de transactions déficitaires.
+     */
+    private int loss;
 
     /**
      *  Ligne temporelle.
@@ -39,11 +70,43 @@ public class PerformanceDTO {
     private MixinEntity exitMix;
 
     /**
-     *  Retourne le profit généré.
-     *  @return Profit généré.
+     *  Retourne le profit brut moyen généré.
+     *  @return Profit brut généré.
      */
-    public double getProfit() {
-        return this.profit;
+    public double getRawProfit() {
+        return this.rawProfit;
+    }
+
+    /**
+     *  Retourne le profit journalier moyen généré.
+     *  @return Profit journalier généré.
+     */
+    public double getDailyProfit() {
+        return this.dailyProfit;
+    }
+
+    /**
+     *  Retourne le nombre total de confirmations.
+     *  @return Nombre total de confirmations.
+     */
+    public int getConfirmations() {
+        return this.confirmations;
+    }
+
+    /**
+     *  Retourne le nombre de succès.
+     *  @return Nombre de succès.
+     */
+    public int getWins() {
+        return this.wins;
+    }
+
+    /**
+     *  Retourne le nombre d'échecs.
+     *  @return Nombre d'échecs.
+     */
+    public int getLoss() {
+        return this.loss;
     }
 
     /**
@@ -87,23 +150,63 @@ public class PerformanceDTO {
     }
 
     /**
-     *  Affecte le profit.
-     *  @param profit Profit généré.
+     *  Définit le profit brut.
+     *  @param rawProfit Valeur affectée.
      */
-    public void setProfit(double profit) {
-        this.profit = profit;
+    public void setRawProfit(double rawProfit) {
+        this.rawProfit = rawProfit;
     }
 
     /**
-     *  Affecte la ligne temporelle.
-     *  @param timeline Ligne temporelle.
+     *  Définit le profit relatif.
+     *  @param relativeProfit Profit relatif.
+     */
+    public void setRelativeProfit(double relativeProfit) {
+        this.relativeProfit = relativeProfit;
+    }
+
+    /**
+     *  Définit le profit journalier.
+     *  @param dailyProfit Profit journalier.
+     */
+    public void setDailyProfit(double dailyProfit) {
+        this.dailyProfit = dailyProfit;
+    }
+
+    /**
+     *  Définit le nombre de confirmations.
+     *  @param confirmations Nombre de confirmations.
+     */
+    public void setConfirmations(int confirmations) {
+        this.confirmations = confirmations;
+    }
+
+    /**
+     *  Définit le nombre de succès.
+     *  @param wins Nombre de succès.
+     */
+    public void setWins(int wins) {
+        this.wins = wins;
+    }
+
+    /**
+     *  Définit le nombre de pertes.
+     *  @param loss Nombre de pertes.
+     */
+    public void setLoss(int loss) {
+        this.loss = loss;
+    }
+
+    /**
+     *  Définit la ligne temporelle liée.
+     *  @param timeline Ligne temporelle liée.
      */
     public void setTimeline(TimelineEntity timeline) {
         this.timeline = timeline;
     }
 
     /**
-     *  Affecte le niveau de lissage.
+     *  Définit le niveau de lissage.
      *  @param smooth Niveau de lissage.
      */
     public void setSmooth(int smooth) {
@@ -119,8 +222,8 @@ public class PerformanceDTO {
     }
 
     /**
-     *  Définit la stratégie.
-     *  @param entryMix Stratégie.
+     *  Définit la stratégie d'entrée.
+     *  @param entryMix Stratégie d'entrée.
      */
     public void setEntryMix(MixinEntity entryMix) {
         this.entryMix = entryMix;
@@ -132,5 +235,25 @@ public class PerformanceDTO {
      */
     public void setExitMix(MixinEntity exitMix) {
         this.exitMix = exitMix;
+    }
+
+    /**
+     *  Indique si la performance est considérée comme sure pour un placement en production.
+     *  @param wallet Portefeuille.
+     *  @return true si la performance est sure.
+     */
+    public boolean isSafeForProduction(WalletEntity wallet) {
+        return this.wins / this.loss >= wallet.getProdRisk();
+    }
+
+    /**
+     *  Retourne le niveau de confiance accordable à la stratégie.
+     *  @param wallet Portefeuille porteur.
+     *  @return Niveau de confiance.
+     */
+    public double getConfidence(WalletEntity wallet) {
+        double relativeScore = (this.relativeProfit * wallet.getProdBalancing()) * (this.wins / this.loss);
+        double dailyScore = this.dailyProfit * (this.wins / this.loss);
+        return relativeScore + dailyScore;
     }
 }

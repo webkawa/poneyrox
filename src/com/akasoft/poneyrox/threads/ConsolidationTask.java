@@ -11,6 +11,7 @@ import com.akasoft.poneyrox.dao.PositionDAO;
 import com.akasoft.poneyrox.dao.TransactionDAO;
 import com.akasoft.poneyrox.dao.WalletDAO;
 import com.akasoft.poneyrox.dto.PerformanceDTO;
+import com.akasoft.poneyrox.dto.PerformanceTransformer;
 import com.akasoft.poneyrox.entities.positions.*;
 import com.akasoft.poneyrox.exceptions.AbstractException;
 import com.akasoft.poneyrox.exceptions.ApiException;
@@ -125,16 +126,31 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                         return false;
                     }
                 })
-                .limit(super.getWallet().getProdPool() - super.getManager().getVirtualTransactionsCount())
+                .filter(e -> e.isSafeForProduction(super.getWallet()))
+                .sorted((left, right) -> {
+                    double lc = left.getConfidence(super.getWallet());
+                    double rc = right.getConfidence(super.getWallet());
+
+                    if (lc > rc) {
+                        return -1;
+                    } else if (lc < rc) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                })
                 .collect(Collectors.toList());
 
         /* Parcours */
         int count = 0;
-        for (PerformanceDTO target : targets) {
+        for (int i = 0; i < targets.size() && super.getWallet().getProdPool() - super.getManager().getVirtualTransactionsCount() > 0; i++) {
+            /* Récupération de la cible */
+            PerformanceDTO target = targets.get(i);
+
             /* Paramètres */
             AbstractCurve curve = super.getCurve(target.getTimeline(), target.getSmooth());
 
-            /* Calcul du montant de la transaction */
+            /* TODO : Calcul du montant de la transaction */
             double size = 0;
             if (target.getMode()) {
                 size = (super.getWallet().getProdSize() / curve.getOwner().getCurrent().getAsk()) / 0.00000001;
