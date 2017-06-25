@@ -36,13 +36,13 @@ public class PerformanceTransformer implements ResultTransformer {
                     result.setDailyProfit((Double) objects[i]);
                     break;
                 case "confirmations":
-                    result.setConfirmations((Integer) objects[i]);
+                    result.setConfirmations(Math.toIntExact((Long) objects[i]));
                     break;
                 case "wins":
-                    result.setWins((Integer) objects[i]);
+                    result.setWins(Math.toIntExact((Long) objects[i]));
                     break;
                 case "loss":
-                    result.setLoss((Integer) objects[i]);
+                    result.setLoss(Math.toIntExact((Long) objects[i]));
                     break;
                 case "timeline":
                     result.setTimeline((TimelineEntity) objects[i]);

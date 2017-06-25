@@ -449,21 +449,20 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
     @Override
     public boolean mustEnterLong() {
         if (this.currentRate == null) {
-            /* TODO : nettoyer */
-            throw new RuntimeException("WTF");
-        }
-
-        if (this.reverse) {
-            if (this.currentBidDirection) {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingBottoms);
-            } else {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingBottoms);
-            }
+            return false;
         } else {
-            if (this.currentAskDirection) {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingBottoms);
+            if (this.reverse) {
+                if (this.currentBidDirection) {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingBottoms);
+                } else {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingBottoms);
+                }
             } else {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingBottoms);
+                if (this.currentAskDirection) {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askExitingBottoms);
+                } else {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingBottoms);
+                }
             }
         }
     }
@@ -476,17 +475,21 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
      */
     @Override
     public boolean mustEnterShort() {
-        if (this.reverse) {
-            if (this.currentAskDirection) {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingTops);
-            } else {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingTops);
-            }
+        if (this.currentRate == null) {
+            return false;
         } else {
-            if (this.currentBidDirection) {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingTops);
+            if (this.reverse) {
+                if (this.currentAskDirection) {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingTops);
+                } else {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askExitingTops);
+                }
             } else {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingTops);
+                if (this.currentBidDirection) {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingTops);
+                } else {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingTops);
+                }
             }
         }
     }
@@ -500,17 +503,21 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
      */
     @Override
     public boolean mustExitLong(double entry) {
-        if (this.reverse) {
-            if (this.currentBidDirection) {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingTops);
-            } else {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingTops);
-            }
+        if (this.currentRate == null) {
+            return false;
         } else {
-            if (this.currentAskDirection) {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingTops);
+            if (this.reverse) {
+                if (this.currentBidDirection) {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingTops);
+                } else {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingTops);
+                }
             } else {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingTops);
+                if (this.currentAskDirection) {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingTops);
+                } else {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askExitingTops);
+                }
             }
         }
     }
@@ -524,17 +531,21 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
      */
     @Override
     public boolean mustExitShort(double entry) {
-        if (this.reverse) {
-            if (this.currentAskDirection) {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingBottoms);
-            } else {
-                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingBottoms);
-            }
+        if (this.currentRate == null) {
+            return false;
         } else {
-            if (this.currentBidDirection) {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingBottoms);
+            if (this.reverse) {
+                if (this.currentAskDirection) {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askExitingBottoms);
+                } else {
+                    return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingBottoms);
+                }
             } else {
-                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingBottoms);
+                if (this.currentBidDirection) {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingBottoms);
+                } else {
+                    return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingBottoms);
+                }
             }
         }
     }
