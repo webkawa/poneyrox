@@ -115,6 +115,7 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                 new java.util.Date().getTime() - super.getWallet().getProdPeriod(),
                 super.getWallet().getProdPercent(),
                 super.getWallet().getProdConfirmations(),
+                super.getWallet().getFeeSpread(),
                 super.getWallet().getProdGrain());
 
         /* Filtrage */
@@ -167,7 +168,7 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                         target.getMode(),
                         curve.getEntity().getMarket(),
                         1,
-                        100000000l); /* TODO */
+                        100000000l);
 
                 /* Création de la position */
                 PositionEntity position = this.positionDAO.persistPosition(

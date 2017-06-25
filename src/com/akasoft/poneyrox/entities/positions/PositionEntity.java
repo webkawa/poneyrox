@@ -107,7 +107,7 @@ import java.util.UUID;
                         "GROUP BY tl, pos.smooth, pos.mode, mxEn, mxEx " +
                         "HAVING " +
                         "   AVG(pos.dailyProfit) > :percent " +
-                        "   AND AVG(pos.relativeProfit) > 0 " +
+                        "   AND AVG(pos.relativeProfit) > :feeSpread " +
                         "   AND COUNT(pos) > :confirmations " +
                         "   AND SUM(pos.timeoutScore) = 0 " +
                         "ORDER BY " +

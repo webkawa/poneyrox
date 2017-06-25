@@ -139,10 +139,11 @@ public class PositionDAO extends AbstractDAO {
      *  @param start Date de départ.
      *  @param percent Pourcentage minimum recherché.
      *  @param confirmations Nombre de confirmations attendues.
+     *  @param feeSpread Frais sur le spread.
      *  @param limit Nombre d'entrées sélectionnées.
      *  @return Liste des stratégies les plus performantes.
      */
-    public List<PerformanceDTO> getTopStrategiesForProduction(long start, double percent, long confirmations, int limit) {
+    public List<PerformanceDTO> getTopStrategiesForProduction(long start, double percent, long confirmations, double feeSpread, int limit) {
         return super.getSession()
                 .getNamedQuery("Position.getTopStrategiesForProduction")
                 .setParameter("ttype", PositionType.TEST)
@@ -150,6 +151,7 @@ public class PositionDAO extends AbstractDAO {
                 .setParameter("start", start)
                 .setParameter("percent", percent)
                 .setParameter("confirmations", confirmations)
+                .setParameter("feeSpread", feeSpread)
                 .setMaxResults(limit)
                 .setResultTransformer(this.transformer)
                 .list();

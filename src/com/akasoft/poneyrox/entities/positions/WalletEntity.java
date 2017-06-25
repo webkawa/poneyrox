@@ -154,6 +154,11 @@ public class WalletEntity {
     private double prodPercent;
 
     /**
+     *  Pourcentage de frais retenus sur les bénéfices.
+     */
+    private double feeSpread;
+
+    /**
      *  Nombre de confirmations requises.
      *  Nombre minimum de confirmations requises pour la sélection d'une stratégie de production.
      */
@@ -171,7 +176,7 @@ public class WalletEntity {
      */
     public WalletEntity() {
         this.start = new java.util.Date().getTime();
-        this.timeout = 6 * 60 * 60 * 1000;
+        this.timeout = 8 * 60 * 60 * 1000;
         this.retentionDelay = 96 * 60 * 60 * 1000;
         this.retentionProfit = -5;
         this.retentionConfirmations = 16;
@@ -180,7 +185,7 @@ public class WalletEntity {
         this.sampleSize = 1024;
         this.mixerPonderationsGrain = 10;
         this.mixerDeepth = 16;
-        this.simulationPool = 4096 * 24;
+        this.simulationPool = 4096 * 32;
         this.simulationGrain = 320;
         this.testPool = 4096 * 4;
         this.testGrain = 4096 * 2;
@@ -194,6 +199,7 @@ public class WalletEntity {
         this.prodRisk = 2;
         this.prodConfirmations = 5;
         this.prodSize = 1000;
+        this.feeSpread = 0.34;
     }
 
     /**
@@ -394,5 +400,13 @@ public class WalletEntity {
      */
     public int getProdSize() {
         return this.prodSize;
+    }
+
+    /**
+     *  Retourne les frais sur spread.
+     *  @return Frais sur spread.
+     */
+    public double getFeeSpread() {
+        return this.feeSpread;
     }
 }
