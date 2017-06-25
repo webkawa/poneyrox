@@ -51,7 +51,11 @@ import java.util.UUID;
                         "   AND other.smooth = pos.smooth " +
                         "   AND other.mode = pos.mode " +
                         "   AND other.open = true " +
-                        "   AND other.type = :type) " +
+                        "   AND (" +
+                        "       other.type = :ttype" +
+                        "       OR other.type = :vtype" +
+                        "   )" +
+                        ") " +
                         "GROUP BY tl, pos.smooth, pos.mode, mxEn, mxEx " +
                         "HAVING " +
                         "   COUNT(pos) < :confirmations " +
@@ -73,6 +77,21 @@ import java.util.UUID;
                         "INNER JOIN pos.exitMix mxEx " +
                         "WHERE pos.open = false " +
                         "AND pos.start > :start " +
+                        "AND (" +
+                        "   pos.type = :ttype " +
+                        "   OR pos.type = :vtype" +
+                        ") " +
+                        "AND NOT EXISTS(" +
+                        "   SELECT 1 " +
+                        "   FROM PositionEntity other " +
+                        "   WHERE other.entryMix = pos.entryMix " +
+                        "   AND other.exitMix = pos.exitMix " +
+                        "   AND other.timeline = pos.timeline " +
+                        "   AND other.smooth = pos.smooth " +
+                        "   AND other.mode = pos.mode " +
+                        "   AND other.open = true " +
+                        "   AND other.type = :vtype" +
+                        ") " +
                         "GROUP BY tl, pos.smooth, pos.mode, mxEn, mxEx " +
                         "HAVING " +
                         "   AVG(pos.dailyProfit) > :percent " +
@@ -81,7 +100,7 @@ import java.util.UUID;
                         "ORDER BY AVG(pos.dailyProfit) DESC "),
         @NamedQuery(
                 name = "Position.deleteExpiredSimulations",
-                query = "DELETE FROM PositionEntity pos " +
+                query = "DELETE FROM PositionEntity AS pos " +
                         "WHERE pos.type = :type " +
                         "AND pos.timeout = true"
         ),
@@ -104,6 +123,11 @@ import java.util.UUID;
                         "   AND eq.type = :type " +
                         "   AND eq.dailyProfit < :profit" +
                         ")"
+        ),
+        @NamedQuery(
+                name = "Position.deleteAllOpenPositions",
+                query = "DELETE FROM PositionEntity AS pos " +
+                        "WHERE pos.open = true"
         )
 })
 public class PositionEntity {

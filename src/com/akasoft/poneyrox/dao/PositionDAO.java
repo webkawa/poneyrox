@@ -117,7 +117,8 @@ public class PositionDAO extends AbstractDAO {
     public List<PerformanceDTO> getTopStrategiesForTesting(long start, int limit, long confirmations) {
         List<Object[]> source = super.getSession()
                 .getNamedQuery("Position.getTopStrategiesForTesting")
-                .setParameter("type", PositionType.TEST)
+                .setParameter("ttype", PositionType.TEST)
+                .setParameter("vtype", PositionType.VIRTUAL)
                 .setParameter("start", start)
                 .setParameter("confirmations", confirmations)
                 .setMaxResults(limit)
@@ -136,6 +137,8 @@ public class PositionDAO extends AbstractDAO {
     public List<PerformanceDTO> getTopStrategiesForProduction(long start, double percent, long confirmations, int limit) {
         List<Object[]> source =  super.getSession()
                 .getNamedQuery("Position.getTopStrategiesForProduction")
+                .setParameter("ttype", PositionType.TEST)
+                .setParameter("vtype", PositionType.VIRTUAL)
                 .setParameter("start", start)
                 .setParameter("percent", percent)
                 .setParameter("confirmations", confirmations)
@@ -170,6 +173,15 @@ public class PositionDAO extends AbstractDAO {
                 .setParameter("type", PositionType.SIMULATION)
                 .setParameter("start", start)
                 .setParameter("profit", profit)
+                .executeUpdate();
+    }
+
+    /**
+     *  Supprime toutes les positions ouvertes.
+     */
+    public void deleteAllOpenPositions() {
+        super.getSession()
+                .getNamedQuery("Position.deleteAllOpenPositions")
                 .executeUpdate();
     }
 

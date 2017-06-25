@@ -80,11 +80,6 @@ public class ManagerComponent {
     private final List<StrategyTask> strategies;
 
     /**
-     *  DAO des positions.
-     */
-    private final PositionDAO positionDAO;
-
-    /**
      *  Portefeuille.
      */
     private WalletEntity wallet;
@@ -126,7 +121,7 @@ public class ManagerComponent {
         this.scheduler.scheduleAtFixedRate(this.consolidation, 30000);
 
         /* Paramètres */
-        this.positionDAO = positionDAO;
+        positionDAO.deleteAllOpenPositions();;
         this.wallet = walletDAO.persistWallet();
     }
 
