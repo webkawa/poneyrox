@@ -72,7 +72,28 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
     /**
      *  Taux courant.
      */
-    private AbstractCell current;
+    private AbstractCell currentRate;
+
+    /**
+     *  Taux courant de l'offre.
+     */
+    private double currentBidRate;
+
+    /**
+     *  Taux courant de la demande.
+     */
+    private double currentAskRate;
+
+    /**
+     *  Direction courante de l'offre.
+     */
+    private boolean currentBidDirection;
+
+    /**
+     *  Direction courante de la demande.
+     *  Si true, indique que la courbe de demande est en croissance ; si false, en décroissance.
+     */
+    private boolean currentAskDirection;
 
     /**
      *  Liste des plages descriptives de l'approche d'un sommet applicable
@@ -161,7 +182,11 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
      */
     private OppositesStrategy(OppositesStrategy source) {
         this(source.getSize(), source.isReverse(), source.getIncomingProximity(), source.getExitingProximity());
-        this.current = source.getCurrent();
+        this.currentRate = source.getCurrentRate();
+        this.currentBidRate = source.getCurrentBidRate();
+        this.currentAskRate = source.getCurrentAskRate();
+        this.currentAskDirection = source.getCurrentAskDirection();
+        this.currentBidDirection = source.getCurrentBidDirection();
         this.bidIncomingTops = new ArrayList<>(source.getBidIncomingTops());
         this.bidIncomingBottoms = new ArrayList<>(source.getBidIncomingBottoms());
         this.bidExitingTops = new ArrayList<>(source.getBidExitingTops());
@@ -208,8 +233,40 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
      *  Retourne le taux courant.
      *  @return Taux courant.
      */
-    public AbstractCell getCurrent() {
-        return this.current;
+    public AbstractCell getCurrentRate() {
+        return this.currentRate;
+    }
+
+    /**
+     *  Retourne le taux courant de l'offre.
+     *  @return Taux de l'offre.
+     */
+    public double getCurrentBidRate() {
+        return this.currentBidRate;
+    }
+
+    /**
+     *  Retourne le taux courant de la demande.
+     *  @return Taux de la demande.
+     */
+    public double getCurrentAskRate() {
+        return this.currentAskRate;
+    }
+
+    /**
+     *  Retourne la direction de la courbe d'offre.
+     *  @return Direction de la courbe d'offre.
+     */
+    public boolean getCurrentBidDirection() {
+        return this.currentBidDirection;
+    }
+
+    /**
+     *  Retourne la direction de la courbe de demande.
+     *  @return Direction de la courbe.
+     */
+    public boolean getCurrentAskDirection() {
+        return this.currentAskDirection;
     }
 
     /**
@@ -347,7 +404,7 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
     @Override
     public void consolidate(AbstractCurve curve, List<AbstractCell> cells) {
         /* Récupération du dernier taux */
-        this.current = cells.get(cells.size() - 1);
+        this.currentRate = cells.get(cells.size() - 1);
 
         /* Nettoyage des données précédentes */
         this.bidIncomingTops.clear();
@@ -372,91 +429,113 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
                  this.askIncomingBottoms,
                  this.askExitingTops,
                  this.askExitingBottoms);
+
+         /* Récupération des cours */
+         this.currentBidRate = VariationParameter.getRateByVariation(this.currentRate.getBid(), super.getMode());
+         this.currentAskRate = VariationParameter.getRateByVariation(this.currentRate.getAsk(), super.getMode());
+
+         /* Récupération de la direction du cours.
+          * Si le dernier élément de la courbe est un sommet, alors la courbe est considérée en croissance. */
+         this.currentBidDirection = VariationParameter.getTopByVariation(this.currentRate.getBid(), super.getMode());
+         this.currentAskDirection = VariationParameter.getTopByVariation(this.currentRate.getAsk(), super.getMode());
     }
 
     /**
      *  Indique si la stratégie doit entrer en position longue.
-     *  La stratégie entre en position longue dès lors qu'elle approche ou qu'elle quitte un zone de repli de la demande
-     *  (offre en mode inversé).
+     *  La stratégie entre en position longue dès lors qu'elle approche (en décroissance) ou quitte (en croissance) une
+     *  zone de repli de la demande (standard) ou de l'offre (inversé).
      *  @return Réponse.
      */
     @Override
     public boolean mustEnterLong() {
+        if (this.currentRate == null) {
+            /* TODO : nettoyer */
+            throw new RuntimeException("WTF");
+        }
+
         if (this.reverse) {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getBid(), super.getMode()),
-                    this.bidIncomingBottoms,
-                    this.bidExitingBottoms);
+            if (this.currentBidDirection) {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingBottoms);
+            } else {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingBottoms);
+            }
         } else {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getAsk(), super.getMode()),
-                    this.askIncomingBottoms,
-                    this.askExitingBottoms);
+            if (this.currentAskDirection) {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingBottoms);
+            } else {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingBottoms);
+            }
         }
     }
 
     /**
      *  Indique si la stratégie doit entrer en position courte.
-     *  La stratégie entre en position courte dès lors qu'elle approche ou qu'elle quitte une zone de sommet de l'offre
-     *  (demande en mode inversé).
+     *  La stratégie entre en position longue dès lors qu'elle approche (en croissance) ou quitte (en décroissance) une
+     *  zone de sommet de l'offre (standard) ou de la demande (inversé).
      *  @return Réponse.
      */
     @Override
     public boolean mustEnterShort() {
         if (this.reverse) {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getAsk(), super.getMode()),
-                    this.askIncomingTops,
-                    this.askExitingTops);
+            if (this.currentAskDirection) {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingTops);
+            } else {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingTops);
+            }
         } else {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getBid(), super.getMode()),
-                    this.bidIncomingTops,
-                    this.bidExitingTops);
+            if (this.currentBidDirection) {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingTops);
+            } else {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingTops);
+            }
         }
     }
 
     /**
      *  Indique si la stratégie doit sortir d'une position longue.
-     *  La stratégie sort d'une position longue dès lors qu'elle approche ou qu'elle quitte une zone de sommet de l'offre
-     *  (demande en mode inversé).
+     *  La stratégie sort de position longue dès lors qu'elle approche (en croissance) ou quitte (en décroissance) une
+     *  zone de sommet de la demande (standard) ou de l'offre (inversé).
      *  @param entry Cout à l'entrée.
      *  @return Réponse.
      */
     @Override
     public boolean mustExitLong(double entry) {
         if (this.reverse) {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getAsk(), super.getMode()),
-                    this.askIncomingTops,
-                    this.askExitingTops);
+            if (this.currentBidDirection) {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingTops);
+            } else {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingTops);
+            }
         } else {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getBid(), super.getMode()),
-                    this.bidIncomingTops,
-                    this.bidExitingTops);
+            if (this.currentAskDirection) {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingTops);
+            } else {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingTops);
+            }
         }
     }
 
     /**
      *  Indique si la stratégie doit sortir d'une position courte.
-     *  La stratégie sort d'une position courte dès lors qu'elle approche ou qu'elle quitte une zone de repli de la demande
-     *  (offre en mode inversé).
+     *  La stratégie sort de position courte dès lors qu'elle approche (en décroissance) ou quitte (en croissance) une
+     *  zone de repli de l'offre (standard) ou de la demande (inversé).
      *  @param entry Cout à l'entrée.
      *  @return Réponse.
      */
     @Override
     public boolean mustExitShort(double entry) {
         if (this.reverse) {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getBid(), super.getMode()),
-                    this.bidIncomingBottoms,
-                    this.bidExitingBottoms);
+            if (this.currentAskDirection) {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askExitingBottoms);
+            } else {
+                return OppositesStrategy.inRange(this.currentAskRate, this.askIncomingBottoms);
+            }
         } else {
-            return this.current != null && OppositesStrategy.inSomeRange(
-                    VariationParameter.getRateByVariation(this.current.getAsk(), super.getMode()),
-                    this.askIncomingBottoms,
-                    this.askExitingBottoms);
+            if (this.currentBidDirection) {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidExitingBottoms);
+            } else {
+                return OppositesStrategy.inRange(this.currentBidRate, this.bidIncomingBottoms);
+            }
         }
     }
 
