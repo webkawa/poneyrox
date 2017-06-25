@@ -188,8 +188,10 @@ public class WhaleClubAccess {
             HttpResponse<JsonNode> response = request.asJson();
             this.doCheck(response, validators);
             return response.getBody();
-        } catch (UnirestException | ApiException cause) {
-            throw new ApiException(cause, "HTTP GET call to URI '%s' failed", uri);
+        } catch (ApiException cause) {
+            throw new ApiException(cause.getCode(), cause, "HTTP GET call to URI '%s' failed", uri);
+        } catch (UnirestException cause) {
+            throw new ApiException(500, cause, "Serialization for HTTP GET on URI '%s' failed", uri);
         }
     }
 
@@ -207,8 +209,10 @@ public class WhaleClubAccess {
             HttpResponse<JsonNode> response = request.asJson();
             this.doCheck(response, validators);
             return response.getBody();
-        } catch (UnirestException | ApiException cause) {
-            throw new ApiException(cause, "HTTP PUT call to URI '%s' failed", uri);
+        } catch (ApiException cause) {
+            throw new ApiException(cause.getCode(), cause, "HTTP PUT call to URI '%s' failed", uri);
+        } catch (UnirestException cause) {
+            throw new ApiException(500, cause, "Serialization for HTTP PUT on URI '%s' failed", uri);
         }
     }
 
@@ -238,8 +242,10 @@ public class WhaleClubAccess {
             HttpResponse<JsonNode> response = request.asJson();
             this.doCheck(response, validators);
             return response.getBody();
-        } catch (UnirestException | ApiException cause) {
-            throw new ApiException(cause, "HTTP POST call to URI '%s' failed", uri);
+        } catch (ApiException cause) {
+            throw new ApiException(cause.getCode(), cause, "HTTP POST call to URI '%s' failed", uri);
+        } catch (UnirestException cause) {
+            throw new ApiException(500, cause, "Serialization for HTTP POST on URI '%s' failed", uri);
         }
     }
 
@@ -264,7 +270,7 @@ public class WhaleClubAccess {
      */
     private void doCheck(HttpResponse response, int[] validators) throws ApiException {
         if (!Arrays.stream(validators).anyMatch(code -> response.getStatus() == code)) {
-            throw new ApiException("Invalid API response code %d", response.getStatus());
+            throw new ApiException(response.getStatus(), "Invalid API response code %d", response.getStatus());
         }
     }
 
