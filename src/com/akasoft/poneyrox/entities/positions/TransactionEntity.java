@@ -46,6 +46,18 @@ public class TransactionEntity {
     private double profit;
 
     /**
+     *  Seuil de sécurité.
+     *  Seuil auquel la transaction est automatiquement annulée par le programme.
+     */
+    private double stopLoss;
+
+    /**
+     *  Marge de sécurité.
+     *  Marge de sécurité prévue à la création de la transaction.
+     */
+    private double stopGap;
+
+    /**
      *  Montant de la position.
      */
     private double size;
@@ -105,6 +117,22 @@ public class TransactionEntity {
      */
     public double getProfit() {
         return this.profit;
+    }
+
+    /**
+     *  Retourne le seuil de sécurité de la transaction.
+     *  @return Seuil de sécurité.
+     */
+    public double getStopLoss() {
+        return this.stopLoss;
+    }
+
+    /**
+     *  Retourne la marge de sécurité de la transaction.
+     *  @return Marge de sécurité.
+     */
+    public double getStopGap() {
+        return this.stopGap;
     }
 
     /**
@@ -169,6 +197,22 @@ public class TransactionEntity {
      */
     public void setProfit(double profit) {
         this.profit = profit;
+    }
+
+    /**
+     *  Définit le seuil de sécurité.
+     *  @param stopLoss Seuil de sécurité.
+     */
+    public void setStopLoss(double stopLoss) {
+        this.stopLoss = stopLoss;
+    }
+
+    /**
+     *  Définit la marge de sécurité.
+     *  @param stopGap Marge de sécurité.
+     */
+    public void setStopGap(double stopGap) {
+        this.stopGap = stopGap;
     }
 
     /**

@@ -78,6 +78,14 @@ public class PerformanceDTO {
     }
 
     /**
+     *  Retourne le pourcentage de profit moyen généré.
+     *  @return Pourcentage de profit relatif moyen.
+     */
+    public double getRelativeProfit() {
+        return this.relativeProfit;
+    }
+
+    /**
      *  Retourne le profit journalier moyen généré.
      *  @return Profit journalier généré.
      */

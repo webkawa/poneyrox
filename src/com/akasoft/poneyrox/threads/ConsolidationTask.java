@@ -11,10 +11,12 @@ import com.akasoft.poneyrox.dao.PositionDAO;
 import com.akasoft.poneyrox.dao.TransactionDAO;
 import com.akasoft.poneyrox.dao.WalletDAO;
 import com.akasoft.poneyrox.dto.PerformanceDTO;
+import com.akasoft.poneyrox.entities.markets.RateEntity;
 import com.akasoft.poneyrox.entities.positions.*;
 import com.akasoft.poneyrox.exceptions.AbstractException;
 import com.akasoft.poneyrox.exceptions.ApiException;
 import com.akasoft.poneyrox.exceptions.InnerException;
+import javafx.geometry.Pos;
 
 import java.util.HashMap;
 import java.util.List;
@@ -158,40 +160,63 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
             } else {
                 size = (super.getWallet().getProdSize() / curve.getOwner().getCurrent().getBid()) / 0.00000001;
             }
+            size = 100000000l;
 
             /* Récupération du score */
             double score = this.process(curve, builds.get(curve), target);
             if (score != -1) {
-                /* Prise de position dans l'API */
-                WhaleClubPositionDTO dto = this.access.takePosition(
-                        true,
-                        target.getMode(),
-                        curve.getEntity().getMarket(),
-                        1,
-                        100000000l);
-
-                /* Création de la position */
-                PositionEntity position = this.positionDAO.persistPosition(
+                /* Récupération du précédent */
+                PositionEntity precedent = this.positionDAO.getLastPositionsByStrategy(
                         target.getTimeline(),
-                        curve.getOwner().getCurrent(),
+                        target.getSmooth(),
                         target.getMode(),
-                        PositionType.VIRTUAL,
-                        score,
-                        curve.getSmooth(),
                         target.getEntryMix(),
-                        target.getExitMix());
+                        target.getExitMix(),
+                        1).get(0);
 
-                /* Création de la transaction */
-                TransactionEntity transaction = this.transactionDAO.persistTransaction(
-                        dto.getId(),
-                        dto.getEntryPrice(),
-                        dto.getSize(),
-                        position,
-                        super.getWallet());
+                /* Vérification.
+                 * Pour etre placée, la position précédente doit nécessairement etre un test et avoir dégagé un profit. */
+                if (precedent.getProfit() > 0 && precedent.getType().equals(PositionType.TEST)) {
+                    /* Récupération du taux courant */
+                    RateEntity rate = curve.getOwner().getCurrent();
 
-                /* Diffusion */
-                super.getManager().publishTransaction(true, curve, transaction);
-                count++;
+                    /* Calcul du pont */
+                    double gap = (target.getRelativeProfit() / 100) * (target.getMode() ? rate.getBid() : rate.getAsk());
+                    double stop = target.getMode() ? rate.getBid() - gap : rate.getAsk() + gap;
+
+                    /* Prise de position dans l'API */
+                    WhaleClubPositionDTO dto = this.access.takePosition(
+                            true,
+                            target.getMode(),
+                            curve.getEntity().getMarket(),
+                            1,
+                            size);
+
+                    /* Création de la position */
+                    PositionEntity position = this.positionDAO.persistPosition(
+                            target.getTimeline(),
+                            rate,
+                            target.getMode(),
+                            PositionType.VIRTUAL,
+                            score,
+                            curve.getSmooth(),
+                            target.getEntryMix(),
+                            target.getExitMix());
+
+                    /* Création de la transaction */
+                    TransactionEntity transaction = this.transactionDAO.persistTransaction(
+                            dto.getId(),
+                            dto.getEntryPrice(),
+                            dto.getSize(),
+                            stop,
+                            gap,
+                            position,
+                            super.getWallet());
+
+                    /* Diffusion */
+                    super.getManager().publishTransaction(true, curve, transaction);
+                    count++;
+                }
             }
         }
         if (count > 0) {

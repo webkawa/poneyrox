@@ -28,6 +28,8 @@ public class TransactionDAO extends AbstractDAO {
      *  @param foreign Clef d'accès.
      *  @param entry Taux à l'entrée.
      *  @param size Taille de la transaction.
+     *  @param stopLoss Seuil de sécurité.
+     *  @param stopGap Marge de sécurité.
      *  @param position Position liée.
      *  @return Transaction créée.
      */
@@ -35,17 +37,29 @@ public class TransactionDAO extends AbstractDAO {
             String foreign,
             double entry,
             double size,
+            double stopLoss,
+            double stopGap,
             PositionEntity position,
             WalletEntity wallet) {
         TransactionEntity result = new TransactionEntity();
         result.setForeign(foreign);
         result.setEntry(entry);
         result.setSize(size);
+        result.setStopLoss(stopLoss);
+        result.setStopGap(stopGap);
         result.setPosition(position);
         result.setWallet(wallet);
 
         super.getSession().persist(result);
         return result;
+    }
+
+    /**
+     *  Met à jour une transaction.
+     *  @param entity Transaction mise à jour.
+     */
+    public void updateTransaction(TransactionEntity entity) {
+        super.getSession().update(entity);
     }
 
     /**

@@ -134,6 +134,12 @@ public class WalletEntity {
     private double prodRisk;
 
     /**
+     *  Niveau de sécurité de la production.
+     *  Pourcentage de perte toléré, en production, relativement au pourcentage espéré.
+     */
+    private double prodSecurity;
+
+    /**
      *  Finesse de la production.
      *  Nombre maximum de positions évaluées et/ou testées pour passage en production à chaque exécution de la tache de
      *  consolidation.
@@ -177,7 +183,7 @@ public class WalletEntity {
     public WalletEntity() {
         this.start = new java.util.Date().getTime();
         this.timeout = 12 * 60 * 60 * 1000;
-        this.retentionDelay = 24 * 60 * 60 * 1000;
+        this.retentionDelay = 36 * 60 * 60 * 1000;
         this.retentionProfit = -1;
         this.retentionConfirmations = 16;
         this.barrierEntry = 75;
@@ -191,12 +197,13 @@ public class WalletEntity {
         this.testGrain = 4096 * 4;
         this.testPeriod = 72 * 60 * 60 * 1000;
         this.testLimit = 16;
-        this.prodPool = 8;
+        this.prodPool = 4;
         this.prodGrain = 2048;
-        this.prodPeriod = 24 * 60 * 60 * 1000;
+        this.prodPeriod = 36 * 60 * 60 * 1000;
         this.prodPercent = 2;
         this.prodBalancing = 3;
         this.prodRisk = 3;
+        this.prodSecurity = 80;
         this.prodConfirmations = 7;
         this.prodSize = 1000;
         this.feeSpread = 0.34;
@@ -384,6 +391,14 @@ public class WalletEntity {
      */
     public double getProdRisk() {
         return this.prodRisk;
+    }
+
+    /**
+     *  Retourne le seuil de sécurité en production.
+     *  @return Sueil de sécurité.
+     */
+    public double getProdSecurity() {
+        return this.prodSecurity;
     }
 
     /**

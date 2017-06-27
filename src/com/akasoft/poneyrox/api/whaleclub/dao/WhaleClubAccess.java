@@ -138,7 +138,7 @@ public class WhaleClubAccess {
             boolean direction,
             MarketEntity market,
             double leverage,
-            long size) throws ApiException, InnerException {
+            double size) throws ApiException, InnerException {
         /* Création des paramètres */
         Map<String, Object> params = new HashMap<>();
         params.put("direction", direction ? "long" : "short");

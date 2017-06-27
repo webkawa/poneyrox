@@ -9,6 +9,7 @@ import com.akasoft.poneyrox.core.time.cells.AbstractCell;
 import com.akasoft.poneyrox.core.time.curves.AbstractCurve;
 import com.akasoft.poneyrox.dao.PositionDAO;
 import com.akasoft.poneyrox.dao.TransactionDAO;
+import com.akasoft.poneyrox.entities.markets.RateEntity;
 import com.akasoft.poneyrox.entities.positions.PositionEntity;
 import com.akasoft.poneyrox.entities.positions.TransactionEntity;
 import com.akasoft.poneyrox.exceptions.AbstractException;
@@ -69,6 +70,10 @@ public class FollowerTask extends FollowerTaskWrapper {
             /* Récupération de la liste de transactions */
             List<TransactionEntity> transactions = super.getVirtualBuffer(curve);
 
+            /* Récupération du taux courant */
+            RateEntity rate = curve.getOwner().getCurrent();
+
+
             /* Extractions des positions */
             List<PositionEntity> positions = transactions
                     .stream()
@@ -78,6 +83,35 @@ public class FollowerTask extends FollowerTaskWrapper {
             /* Traitement */
             List<PositionEntity> removes = this.treat(curve, positions);
             List<TransactionEntity> cleanup = new ArrayList<>();
+
+            /* Mise à jour des seuils de sécurité */
+            for (TransactionEntity transaction : transactions) {
+                /* Calcul */
+                double stop = transaction.getStopLoss();
+                if (transaction.getPosition().getMode()) {
+                    /* Calcul du décalage */
+                    double decal = rate.getBid() - transaction.getStopGap();
+                    stop = decal > stop ? decal : stop;
+
+                    /* Fermeture si nécessaire */
+                    if (stop > rate.getBid() && !removes.contains(transaction.getPosition())) {
+                        removes.add(transaction.getPosition());
+                    }
+                } else {
+                    /* Calcul du décalage */
+                    double decal = rate.getAsk() + transaction.getStopGap();
+                    stop = decal < stop ? decal : stop;
+
+                    /* Fermeture si nécessaire */
+                    if (stop < rate.getAsk() && !removes.contains(transaction.getPosition())) {
+                        removes.add(transaction.getPosition());
+                    }
+                }
+
+                /* Mise à jour */
+                transaction.setStopLoss(stop);
+                this.transactionDAO.updateTransaction(transaction);
+            }
 
             /* Cloture des transactions */
             for (PositionEntity remove : removes) {

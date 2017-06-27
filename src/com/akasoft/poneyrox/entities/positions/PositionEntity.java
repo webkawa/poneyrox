@@ -110,6 +110,17 @@ import java.util.UUID;
                         "   AVG(pos.relativeProfit) DESC," +
                         "   AVG(pos.dailyProfit) DESC"),
         @NamedQuery(
+                name = "Position.getLastPositionsByStrategy",
+                query = "SELECT pos " +
+                        "FROM PositionEntity AS pos " +
+                        "WHERE pos.timeline = :timeline " +
+                        "AND pos.smooth = :smooth " +
+                        "AND pos.mode = :mode " +
+                        "AND pos.entryMix = :entrymix " +
+                        "AND pos.exitMix = :exitmix " +
+                        "ORDER BY pos.end DESC"
+        ),
+        @NamedQuery(
                 name = "Position.deleteExpiredSimulations",
                 query = "DELETE FROM PositionEntity AS pos " +
                         "WHERE pos.type = :type " +

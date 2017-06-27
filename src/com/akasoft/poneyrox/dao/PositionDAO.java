@@ -158,6 +158,28 @@ public class PositionDAO extends AbstractDAO {
     }
 
     /**
+     *  Retourne la liste des dernières positions référencées pour une stratégie donnée.
+     *  @param timeline Ligne temporelle ciblée.
+     *  @param smooth Niveau de lissage.
+     *  @param mode Mode de la position.
+     *  @param entry Stratégie d'entrée.
+     *  @param exit Stratégie de sortie.
+     *  @param limit Nombre maximum de résultats conservés.
+     *  @return Liste des dernières positions.
+     */
+    public List<PositionEntity> getLastPositionsByStrategy(TimelineEntity timeline, int smooth, boolean mode, MixinEntity entry, MixinEntity exit, int limit) {
+        return super.getSession()
+                .getNamedQuery("Position.getLastPositionsByStrategy")
+                .setParameter("timeline", timeline)
+                .setParameter("smooth", smooth)
+                .setParameter("mode", mode)
+                .setParameter("entry", entry)
+                .setParameter("exit", exit)
+                .setMaxResults(limit)
+                .list();
+    }
+
+    /**
      *  Supprime l'ensemble des simulations expirées.
      */
     public void deleteExpiredSimulations() {
