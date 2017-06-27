@@ -243,6 +243,9 @@ public class PerformanceDTO {
      *  @return true si la performance est sure.
      */
     public boolean isSafeForProduction(WalletEntity wallet) {
+        if (this.loss == 0) {
+            return true;
+        }
         return this.wins / this.loss >= wallet.getProdRisk();
     }
 
@@ -252,8 +255,9 @@ public class PerformanceDTO {
      *  @return Niveau de confiance.
      */
     public double getConfidence(WalletEntity wallet) {
-        double relativeScore = (this.relativeProfit * wallet.getProdBalancing()) * (this.wins / this.loss);
-        double dailyScore = this.dailyProfit * (this.wins / this.loss);
+        double ratio = this.loss == 0 ? this.wins : this.wins / this.loss;
+        double relativeScore = (this.relativeProfit * wallet.getProdBalancing()) * ratio;
+        double dailyScore = this.dailyProfit * ratio;
         return relativeScore + dailyScore;
     }
 }

@@ -44,13 +44,8 @@ import java.util.UUID;
                         "INNER JOIN pos.timeline AS tl " +
                         "INNER JOIN pos.entryMix AS mxEn " +
                         "INNER JOIN pos.exitMix AS mxEx " +
-                        "WHERE pos.timeout = false " +
-                        "AND pos.open = false " +
-                        "AND pos.start > :start " +
-                        "AND NOT EXISTS ( " +
-                        "   SELECT 1 " +
-                        "   FROM PositionEntity other " +
-                        "   WHERE other.entryMix = pos.entryMix " +
+                        "LEFT JOIN PositionEntity AS other " +
+                        "   ON other.entryMix = pos.entryMix " +
                         "   AND other.exitMix = pos.exitMix " +
                         "   AND other.timeline = pos.timeline " +
                         "   AND other.smooth = pos.smooth " +
@@ -60,7 +55,10 @@ import java.util.UUID;
                         "       other.type = :ttype" +
                         "       OR other.type = :vtype" +
                         "   )" +
-                        ") " +
+                        "WHERE pos.timeout = false " +
+                        "AND pos.open = false " +
+                        "AND pos.start > :start " +
+                        "AND other IS NULL " +
                         "GROUP BY tl, pos.smooth, pos.mode, mxEn, mxEx " +
                         "HAVING " +
                         "   COUNT(pos) < :confirmations " +
@@ -87,23 +85,21 @@ import java.util.UUID;
                         "INNER JOIN pos.timeline tl " +
                         "INNER JOIN pos.entryMix mxEn " +
                         "INNER JOIN pos.exitMix mxEx " +
+                        "LEFT JOIN PositionEntity AS other " +
+                        "   ON other.entryMix = pos.entryMix " +
+                        "   AND other.exitMix = pos.exitMix " +
+                        "   AND other.timeline = pos.timeline " +
+                        "   AND other.smooth = pos.smooth " +
+                        "   AND other.mode = pos.mode " +
+                        "   AND other.open = true " +
+                        "   AND other.type = :vtype " +
                         "WHERE pos.open = false " +
                         "AND pos.start > :start " +
                         "AND (" +
                         "   pos.type = :ttype " +
                         "   OR pos.type = :vtype" +
                         ") " +
-                        "AND NOT EXISTS(" +
-                        "   SELECT 1 " +
-                        "   FROM PositionEntity other " +
-                        "   WHERE other.entryMix = pos.entryMix " +
-                        "   AND other.exitMix = pos.exitMix " +
-                        "   AND other.timeline = pos.timeline " +
-                        "   AND other.smooth = pos.smooth " +
-                        "   AND other.mode = pos.mode " +
-                        "   AND other.open = true " +
-                        "   AND other.type = :vtype" +
-                        ") " +
+                        "AND other IS NULL " +
                         "GROUP BY tl, pos.smooth, pos.mode, mxEn, mxEx " +
                         "HAVING " +
                         "   AVG(pos.dailyProfit) > :percent " +
@@ -143,6 +139,13 @@ import java.util.UUID;
                 name = "Position.deleteAllOpenPositions",
                 query = "DELETE FROM PositionEntity AS pos " +
                         "WHERE pos.open = true"
+        ),
+        @NamedQuery(
+                name = "Position.deleteAllOldPositions",
+                query = "DELETE FROM PositionEntity AS pos " +
+                        "WHERE pos.open = false " +
+                        "AND pos.end < :start " +
+                        "AND pos.type NOT IN(:vtype)"
         )
 })
 public class PositionEntity {

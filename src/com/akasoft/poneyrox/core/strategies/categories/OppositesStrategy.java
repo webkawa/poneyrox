@@ -676,17 +676,6 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
     }
 
     /**
-     *  Indique si une valeur se trouve dans une de deux listes de plages passées en paramètre.
-     *  @param value Valeur évaluée.
-     *  @param left Première liste.
-     *  @param right Deuxième liste.
-     *  @return true si la valeur se situe dans l'une des deux plages.
-     */
-    private static boolean inSomeRange(double value, List<Double[]> left, List<Double[]> right) {
-        return OppositesStrategy.inRange(value, left) || OppositesStrategy.inRange(value, right);
-    }
-
-    /**
      *  Indique si une valeur se trouve dans une liste de plages.
      *  @param value Valeur évaluée.
      *  @param ranges Liste des plages.

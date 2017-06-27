@@ -187,6 +187,18 @@ public class PositionDAO extends AbstractDAO {
     }
 
     /**
+     *  Supprime toutes les positions finalisées depuis un certain délai.
+     *  @param start Date de départ.
+     */
+    public void deleteAllOldPositions(long start) {
+        super.getSession()
+                .getNamedQuery("Position.deleteAllOldPositions")
+                .setParameter("vtype", PositionType.VIRTUAL)
+                .setParameter("start", start)
+                .executeUpdate();
+    }
+
+    /**
      *  Supprime toutes les positions ouvertes.
      */
     public void deleteAllOpenPositions() {

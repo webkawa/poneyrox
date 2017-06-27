@@ -176,9 +176,9 @@ public class WalletEntity {
      */
     public WalletEntity() {
         this.start = new java.util.Date().getTime();
-        this.timeout = 8 * 60 * 60 * 1000;
-        this.retentionDelay = 96 * 60 * 60 * 1000;
-        this.retentionProfit = -5;
+        this.timeout = 12 * 60 * 60 * 1000;
+        this.retentionDelay = 24 * 60 * 60 * 1000;
+        this.retentionProfit = -1;
         this.retentionConfirmations = 16;
         this.barrierEntry = 75;
         this.barrierExit = 75;
@@ -187,17 +187,17 @@ public class WalletEntity {
         this.mixerDeepth = 16;
         this.simulationPool = 4096 * 32;
         this.simulationGrain = 320;
-        this.testPool = 4096 * 4;
-        this.testGrain = 4096 * 2;
+        this.testPool = 4096 * 8;
+        this.testGrain = 4096 * 4;
         this.testPeriod = 72 * 60 * 60 * 1000;
         this.testLimit = 16;
         this.prodPool = 8;
         this.prodGrain = 2048;
-        this.prodPeriod = 36 * 60 * 60 * 1000;
+        this.prodPeriod = 24 * 60 * 60 * 1000;
         this.prodPercent = 2;
         this.prodBalancing = 3;
-        this.prodRisk = 2;
-        this.prodConfirmations = 5;
+        this.prodRisk = 3;
+        this.prodConfirmations = 7;
         this.prodSize = 1000;
         this.feeSpread = 0.34;
     }

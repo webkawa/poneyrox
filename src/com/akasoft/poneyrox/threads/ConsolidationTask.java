@@ -11,7 +11,6 @@ import com.akasoft.poneyrox.dao.PositionDAO;
 import com.akasoft.poneyrox.dao.TransactionDAO;
 import com.akasoft.poneyrox.dao.WalletDAO;
 import com.akasoft.poneyrox.dto.PerformanceDTO;
-import com.akasoft.poneyrox.dto.PerformanceTransformer;
 import com.akasoft.poneyrox.entities.positions.*;
 import com.akasoft.poneyrox.exceptions.AbstractException;
 import com.akasoft.poneyrox.exceptions.ApiException;
@@ -97,6 +96,7 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
         long expiration = new java.util.Date().getTime() - super.getWallet().getTimeout();
         this.positionDAO.deleteExpiredSimulations();
         this.positionDAO.deleteUntestedSimulations(expiration, super.getWallet().getRetentionProfit());
+        this.positionDAO.deleteAllOldPositions(new java.util.Date().getTime() - super.getWallet().getRetentionDelay());
 
         /* Rafraichissement du portefeuille */
         WalletEntity wallet = this.walletDAO.refreshWallet(this.getManager().getWallet());
