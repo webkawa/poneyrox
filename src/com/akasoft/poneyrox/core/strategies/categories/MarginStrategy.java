@@ -26,7 +26,7 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
     /**
      *  Pourcentage de profit maximum toléré.
      */
-    private static final double MAXIMUM_PROFIT = 400;
+    private static final double MAXIMUM_PROFIT = 1200;
 
     /**
      *  Niveau de finesse du profit toléré.
@@ -36,12 +36,12 @@ public class MarginStrategy extends AbstractStrategy<MarginStrategyEntity> imple
     /**
      *  Pourcentage de perte minimum tolérée.
      */
-    private static final double MINIMUM_LOSS = 1;
+    private static final double MINIMUM_LOSS = 100;
 
     /**
      *  Pourcentage de perte maximum tolérée.
      */
-    private static final double MAXIMUM_LOSS = 400;
+    private static final double MAXIMUM_LOSS = 1200;
 
     /**
      *  Niveau de finesse de la perte tolérée.

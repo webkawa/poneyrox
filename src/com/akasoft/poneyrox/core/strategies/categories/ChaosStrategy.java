@@ -23,7 +23,7 @@ public class ChaosStrategy extends AbstractStrategy<ChaosStrategyEntity> impleme
     /**
      *  Taille maximum.
      */
-    public static final int SIZE_MAXIMUM = 64;
+    public static final int SIZE_MAXIMUM = 124;
 
     /**
      *  Grain de la taille.

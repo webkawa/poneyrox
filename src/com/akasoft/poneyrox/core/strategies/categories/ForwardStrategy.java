@@ -43,7 +43,7 @@ public class ForwardStrategy extends AbstractStrategy<ForwardStrategyEntity> imp
     /**
      *  Nombre maximum de cellules de retard.
      */
-    private static final int MAXIMUM_BACKWARD = 16;
+    private static final int MAXIMUM_BACKWARD = 64;
 
     /**
      *  Finesse des cellules de retard.

@@ -20,12 +20,12 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
     /**
      *  Taille minimum évaluée.
      */
-    private static final int SIZE_MINIMUM = 4;
+    private static final int SIZE_MINIMUM = 16;
 
     /**
      *  Taille maximum évaluée.
      */
-    private static final int SIZE_MAXIMUM = 128;
+    private static final int SIZE_MAXIMUM = 160;
 
     /**
      *  Finesse de l'évaluation de taille.
@@ -40,7 +40,7 @@ public class OppositesStrategy extends AbstractStrategy<OppositesStrategyEntity>
     /**
      *  Niveau de proximité maximum évalué.
      */
-    private static final double PROXIMITY_MAXIMUM = 40;
+    private static final double PROXIMITY_MAXIMUM = 20;
 
     /**
      *  Finesse de l'évaluation de proximité.

@@ -23,7 +23,7 @@ public class GrowthStrategy extends AbstractStrategy<GrowthStrategyEntity> imple
     /**
      *  Taille maximum.
      */
-    public static final int MAXIMUM_SIZE = 12;
+    public static final int MAXIMUM_SIZE = 16;
 
     /**
      *  Grain de la taille.
