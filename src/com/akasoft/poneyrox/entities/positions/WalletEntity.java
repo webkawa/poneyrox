@@ -195,7 +195,7 @@ public class WalletEntity {
         this.simulationGrain = 320;
         this.testPool = 4096 * 8;
         this.testGrain = 4096 * 4;
-        this.testPeriod = 72 * 60 * 60 * 1000;
+        this.testPeriod = 36 * 60 * 60 * 1000;
         this.testLimit = 16;
         this.prodPool = 4;
         this.prodGrain = 2048;
@@ -203,8 +203,8 @@ public class WalletEntity {
         this.prodPercent = 2;
         this.prodBalancing = 3;
         this.prodRisk = 3;
-        this.prodSecurity = 80;
-        this.prodConfirmations = 7;
+        this.prodSecurity = 150;
+        this.prodConfirmations = 8;
         this.prodSize = 1000;
         this.feeSpread = 0.34;
     }

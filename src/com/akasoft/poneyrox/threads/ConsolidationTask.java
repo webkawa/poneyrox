@@ -176,12 +176,12 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
 
                 /* Vérification.
                  * Pour etre placée, la position précédente doit nécessairement etre un test et avoir dégagé un profit. */
-                if (precedent.getProfit() > 0 && precedent.getType().equals(PositionType.TEST)) {
+                if (precedent.getProfit() > 0 && !precedent.getType().equals(PositionType.SIMULATION)) {
                     /* Récupération du taux courant */
                     RateEntity rate = curve.getOwner().getCurrent();
 
                     /* Calcul du pont */
-                    double gap = (target.getRelativeProfit() / 100) * (target.getMode() ? rate.getBid() : rate.getAsk());
+                    double gap = ((target.getRelativeProfit() / 100) * (target.getMode() ? rate.getBid() : rate.getAsk())) * (super.getWallet().getProdSecurity() / 100);
                     double stop = target.getMode() ? rate.getBid() - gap : rate.getAsk() + gap;
 
                     /* Prise de position dans l'API */

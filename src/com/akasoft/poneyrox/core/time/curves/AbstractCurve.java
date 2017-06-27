@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractCurve<TCell extends AbstractCell> extends AbstractCurveWrapper<TCell> {
     /**
-     *  Nombre maximum de cellules concernées.
+     *  Nombre maximum de cellules retenues.
      */
-    public static final int WIDTH = 256;
+    public static final int WIDTH = 320;
 
     /**
      *  Tache propriétaire.

@@ -104,7 +104,7 @@ import java.util.UUID;
                         "HAVING " +
                         "   AVG(pos.dailyProfit) > :percent " +
                         "   AND AVG(pos.relativeProfit) > :feeSpread " +
-                        "   AND COUNT(pos) > :confirmations " +
+                        "   AND COUNT(pos) >= :confirmations " +
                         "   AND SUM(pos.timeoutScore) = 0 " +
                         "ORDER BY " +
                         "   AVG(pos.relativeProfit) DESC," +
@@ -116,8 +116,8 @@ import java.util.UUID;
                         "WHERE pos.timeline = :timeline " +
                         "AND pos.smooth = :smooth " +
                         "AND pos.mode = :mode " +
-                        "AND pos.entryMix = :entrymix " +
-                        "AND pos.exitMix = :exitmix " +
+                        "AND pos.entryMix = :entry " +
+                        "AND pos.exitMix = :exit " +
                         "ORDER BY pos.end DESC"
         ),
         @NamedQuery(

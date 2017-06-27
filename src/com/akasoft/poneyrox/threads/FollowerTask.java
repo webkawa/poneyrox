@@ -95,6 +95,7 @@ public class FollowerTask extends FollowerTaskWrapper {
 
                     /* Fermeture si nécessaire */
                     if (stop > rate.getBid() && !removes.contains(transaction.getPosition())) {
+                        this.positionDAO.closePosition(rate, transaction.getPosition(), 0, false);
                         removes.add(transaction.getPosition());
                     }
                 } else {
@@ -104,6 +105,7 @@ public class FollowerTask extends FollowerTaskWrapper {
 
                     /* Fermeture si nécessaire */
                     if (stop < rate.getAsk() && !removes.contains(transaction.getPosition())) {
+                        this.positionDAO.closePosition(rate, transaction.getPosition(), 0, false);
                         removes.add(transaction.getPosition());
                     }
                 }
