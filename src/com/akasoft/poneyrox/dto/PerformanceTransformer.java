@@ -50,6 +50,9 @@ public class PerformanceTransformer implements ResultTransformer {
                 case "smooth":
                     result.setSmooth((Integer) objects[i]);
                     break;
+                case "confidence":
+                    result.setConfidence((Double) objects[i]);
+                    break;
                 case "mode":
                     result.setMode((Boolean) objects[i]);
                     break;

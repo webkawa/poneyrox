@@ -42,11 +42,31 @@ public class PositionDAO extends AbstractDAO {
      *  @param type Type de position.
      *  @param score Score à l'entrée.
      *  @param smooth Niveau de lissage.
+     *  @param confidence Niveau de confiance.
+     *  @param hope Pourcentage de bénéfice espéré.
      *  @param entryMixin Stratégie à l'entrée.
      *  @param exitMixin Stratégie de sortie.
      *  @return Position créée.
      */
-    public PositionEntity persistPosition(TimelineEntity timeline, RateEntity rate, boolean mode, PositionType type, double score, int smooth, MixinEntity entryMixin, MixinEntity exitMixin) {
+    public PositionEntity persistPosition(
+            TimelineEntity timeline,
+            RateEntity rate,
+            boolean mode,
+            PositionType type,
+            double score,
+            int smooth,
+            double confidence,
+            double hope,
+            MixinEntity entryMixin,
+            MixinEntity exitMixin) {
+        /* Gestion du risque */
+        hope = Math.max(0.1, hope);
+        double stopGap = ((hope / 100) * (mode ? rate.getBid() : rate.getAsk())) * (confidence / 100);
+        double stopPoint = mode ? rate.getBid() - stopGap : rate.getAsk() + stopGap;
+        double successGap = ((hope / 100) * (mode ? rate.getAsk() : rate.getBid())) * (Math.max(confidence, 100) / 100);
+        double successPoint = mode ? rate.getAsk() + successGap : rate.getBid() - successGap;
+
+        /* Création de la position */
         PositionEntity position = new PositionEntity();
         position.setOpen(true);
         position.setMode(mode);
@@ -54,10 +74,16 @@ public class PositionDAO extends AbstractDAO {
         position.setEntryScore(score);
         position.setTimeline(timeline);
         position.setSmooth(smooth);
+        position.setConfidence(confidence);
+        position.setStopGap(stopGap);
+        position.setStopLoss(stopPoint);
+        position.setStopSuccess(successPoint);
         position.setEntry(mode ? rate.getAsk() : rate.getBid());
         position.setEntryMix(entryMixin);
         position.setExitMix(exitMixin);
+        position.setHash(position.hashCode());
 
+        /* Enregistrement et renvoi */
         super.getSession().persist(position);
         return position;
     }
@@ -93,9 +119,9 @@ public class PositionDAO extends AbstractDAO {
         position.setOpen(false);
         position.setTimeout(timeout);
         position.setEnd(new java.util.Date().getTime());
-        super.getSession().update(position);
 
         /* Renvoi */
+        super.getSession().update(position);
         return position;
     }
 
@@ -161,18 +187,20 @@ public class PositionDAO extends AbstractDAO {
      *  Retourne la liste des dernières positions référencées pour une stratégie donnée.
      *  @param timeline Ligne temporelle ciblée.
      *  @param smooth Niveau de lissage.
+     *  @param confidence Niveau de confiance.
      *  @param mode Mode de la position.
      *  @param entry Stratégie d'entrée.
      *  @param exit Stratégie de sortie.
      *  @param limit Nombre maximum de résultats conservés.
      *  @return Liste des dernières positions.
      */
-    public List<PositionEntity> getLastPositionsByStrategy(TimelineEntity timeline, int smooth, boolean mode, MixinEntity entry, MixinEntity exit, int limit) {
+    public List<PositionEntity> getLastPositionsByStrategy(TimelineEntity timeline, int smooth, double confidence, boolean mode, MixinEntity entry, MixinEntity exit, int limit) {
         return super.getSession()
                 .getNamedQuery("Position.getLastPositionsByStrategy")
                 .setParameter("timeline", timeline)
                 .setParameter("smooth", smooth)
                 .setParameter("mode", mode)
+                .setParameter("confidence", confidence)
                 .setParameter("entry", entry)
                 .setParameter("exit", exit)
                 .setMaxResults(limit)
@@ -187,6 +215,29 @@ public class PositionDAO extends AbstractDAO {
                 .getNamedQuery("Position.deleteExpiredSimulations")
                 .setParameter("type", PositionType.SIMULATION)
                 .executeUpdate();
+    }
+
+    /**
+     *  Supprime l'ensemble des tests similaires à une liste de tests donnés.
+     *  @param entities Liste des tests.
+     */
+    public void deleteExpiredTestsByHashCodes(List<PositionEntity> entities) {
+        if (entities.size() > 0) {
+            /* Création de la liste des codes */
+            Object[] codes = new Object[entities.size()];
+            for (int i = 0; i < entities.size(); i++) {
+                codes[i] = entities.get(i).hashCode();
+            }
+
+            /* Exécution */
+            super.getSession()
+                    .getNamedQuery("Position.deleteExpiredTestsByHashCodes")
+                    .setParameter("ttype", PositionType.TEST)
+                    .setParameter("stype", PositionType.SIMULATION)
+                    .setParameterList("codes", codes)
+                    .executeUpdate();
+
+        }
     }
 
     /**

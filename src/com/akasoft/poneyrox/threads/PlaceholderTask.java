@@ -26,6 +26,16 @@ import java.util.stream.Collectors;
  */
 public class PlaceholderTask extends PlaceholderTaskWrapper {
     /**
+     *  Niveau de confiance minimum.
+     */
+    private static final double CONFIDENCE_MINIMUM = 40;
+
+    /**
+     *  Niveau de confiance maximum.
+     */
+    private static final double CONFIDENCE_MAXIMUM = 600;
+
+    /**
      *  DAO des positions.
      */
     private PositionDAO positionDAO;
@@ -88,6 +98,9 @@ public class PlaceholderTask extends PlaceholderTaskWrapper {
                             exitLead.getPonderation(),
                             exitLead.getStrategies());
 
+                    /* Détermination du niveau de confiance */
+                    double confidence = PlaceholderTask.CONFIDENCE_MINIMUM + ((PlaceholderTask.CONFIDENCE_MAXIMUM - PlaceholderTask.CONFIDENCE_MINIMUM) * Math.random());
+
                     /* Création de la position */
                     PositionEntity position = this.positionDAO.persistPosition(
                             curve.getEntity(),
@@ -96,6 +109,8 @@ public class PlaceholderTask extends PlaceholderTaskWrapper {
                             PositionType.SIMULATION,
                             entryLead.getMode() ? entryLead.getLongScore() : entryLead.getShortScore(),
                             curve.getSmooth(),
+                            confidence,
+                            1,
                             entryMix,
                             exitMix);
 

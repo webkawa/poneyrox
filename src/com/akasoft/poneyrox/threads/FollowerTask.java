@@ -70,10 +70,6 @@ public class FollowerTask extends FollowerTaskWrapper {
             /* Récupération de la liste de transactions */
             List<TransactionEntity> transactions = super.getVirtualBuffer(curve);
 
-            /* Récupération du taux courant */
-            RateEntity rate = curve.getOwner().getCurrent();
-
-
             /* Extractions des positions */
             List<PositionEntity> positions = transactions
                     .stream()
@@ -81,38 +77,12 @@ public class FollowerTask extends FollowerTaskWrapper {
                     .collect(Collectors.toList());
 
             /* Traitement */
-            List<PositionEntity> removes = this.treat(curve, positions);
+            List<PositionEntity> removes = this.treat(curve, positions, true);
             List<TransactionEntity> cleanup = new ArrayList<>();
 
-            /* Mise à jour des seuils de sécurité */
+            /* Mise à jour des transactions */
             for (TransactionEntity transaction : transactions) {
-                /* Calcul */
-                double stop = transaction.getStopLoss();
-                if (transaction.getPosition().getMode()) {
-                    /* Calcul du décalage */
-                    double decal = rate.getBid() - transaction.getStopGap();
-                    stop = decal > stop ? decal : stop;
-
-                    /* Fermeture si nécessaire */
-                    if (stop > rate.getBid() && !removes.contains(transaction.getPosition())) {
-                        this.positionDAO.closePosition(rate, transaction.getPosition(), 0, false);
-                        removes.add(transaction.getPosition());
-                    }
-                } else {
-                    /* Calcul du décalage */
-                    double decal = rate.getAsk() + transaction.getStopGap();
-                    stop = decal < stop ? decal : stop;
-
-                    /* Fermeture si nécessaire */
-                    if (stop < rate.getAsk() && !removes.contains(transaction.getPosition())) {
-                        this.positionDAO.closePosition(rate, transaction.getPosition(), 0, false);
-                        removes.add(transaction.getPosition());
-                    }
-                }
-
-                /* Mise à jour */
-                transaction.setStopLoss(stop);
-                this.transactionDAO.updateTransaction(transaction);
+                this.transactionDAO.updateStopLoss(transaction, transaction.getPosition().getStopLoss());
             }
 
             /* Cloture des transactions */
@@ -141,18 +111,18 @@ public class FollowerTask extends FollowerTaskWrapper {
             super.removeVirtualBuffer(curve, cleanup);
         }
 
-        /* Parcours des positions suivies */
+        /* Parcours des positions aléatoires */
         for (AbstractCurve curve : super.getRandomKeys()) {
-            List<PositionEntity> removes = this.treat(curve, super.getRandomBuffer(curve));
+            List<PositionEntity> removes = this.treat(curve, super.getRandomBuffer(curve), false);
             super.removeRandomBuffer(curve, removes);
             if (removes.size() > 0) {
                 System.out.println("REMOVED " + removes.size() + " SIMULATIONS FROM " + curve);
             }
         }
 
-        /* Parcours des positions aléatoires */
+        /* Parcours des positions en test */
         for (AbstractCurve curve : super.getTargetedKeys()) {
-            List<PositionEntity> removes = this.treat(curve, super.getTargetedBuffer(curve));
+            List<PositionEntity> removes = this.treat(curve, super.getTargetedBuffer(curve), true);
             super.removeTargetedBuffer(curve, removes);
             if (removes.size() > 0) {
                 System.out.println("REMOVED " + removes.size() + " TESTS FROM " + curve);
@@ -164,10 +134,11 @@ public class FollowerTask extends FollowerTaskWrapper {
      *  Réalise le traitement d'une liste de positions passées en paramètre.
      *  @param curve Courbe évaluée.
      *  @param positions Liste des positions.
+     *  @param exitAtConfidence Indique si la position doit etre cloturée une fois le seuil de confiance atteint.
      *  @return Liste des positions retirées.
      *  @throws InnerException En cas d'erreur interne.
      */
-    private List<PositionEntity> treat(AbstractCurve curve, List<PositionEntity> positions) throws InnerException {
+    private List<PositionEntity> treat(AbstractCurve curve, List<PositionEntity> positions, boolean exitAtConfidence) throws InnerException {
         /* Création des variables utiles */
         long now = new java.util.Date().getTime();
         List<PositionEntity> result = new ArrayList<>();
@@ -175,16 +146,60 @@ public class FollowerTask extends FollowerTaskWrapper {
         /* Extraction des cellules utiles */
         List<AbstractCell> builds = curve.getBuilds();
 
+        /* Récupération du taux */
+        RateEntity rate = curve.getOwner().getCurrent();
+
+        /* Création de la liste des expirations */
+        List<PositionEntity> timeouts = new ArrayList<>();
+
         /* Parcours */
         for (PositionEntity position : positions) {
             if (position.getStart() < now - super.getWallet().getTimeout()) {
+                /* Fermeture de la position */
                 this.positionDAO.closePosition(
                         curve.getOwner().getCurrent(),
                         position,
-                        0,
+                        -1,
                         true);
                 result.add(position);
+
+                /* Suppression des tests liés */
+                timeouts.add(position);
             } else {
+                /* Vérication du seuil de sécurité */
+                boolean panick = false;
+                double loss = position.getStopLoss();
+                if (position.getMode()) {
+                    /* Calcul du décalage en mode long */
+                    double decal = rate.getBid() - position.getStopGap();
+                    loss = decal > loss ? decal : loss;
+
+                    /* Fermeture si nécessaire */
+                    if (loss > rate.getBid()) {
+                        panick = true;
+                    }
+                } else {
+                    /* Calcul du décalage en mode court */
+                    double decal = rate.getAsk() + position.getStopGap();
+                    loss = decal < loss ? decal : loss;
+
+                    /* Fermeture si nécessaire */
+                    if (loss < rate.getAsk()) {
+                        panick = true;
+                    }
+                }
+                position.setStopLoss(loss);
+
+                /* Vérification de l'objectif */
+                boolean done = false;
+                if (exitAtConfidence) {
+                    if (position.getMode()) {
+                        done = rate.getAsk() > position.getStopSuccess();
+                    } else {
+                        done = rate.getBid() < position.getStopSuccess();
+                    }
+                }
+
                 /* Extraction de la piste de sortie */
                 ExitLead exit = position.getExitMix().asExitLead(curve, builds, position.getMode());
 
@@ -195,22 +210,27 @@ public class FollowerTask extends FollowerTaskWrapper {
                 }
 
                 /* Calcul */
-                if (pertinent) {
+                if (panick || done || pertinent) {
                     exit.score(position.getMode(), curve.getOwner().getCurrent());
 
                     /* Sortie */
                     double score = position.getMode() ? exit.getLongScore() : exit.getShortScore();
-                    if (score > super.getWallet().getBarrierExit()) {
+                    if (panick || done || score > super.getWallet().getBarrierExit()) {
                         this.positionDAO.closePosition(
-                                curve.getOwner().getCurrent(),
+                                rate,
                                 position,
-                                score,
+                                done ? -2 : (panick ? -1 : score),
                                 false);
                         result.add(position);
                     }
                 }
             }
         }
+
+        /* Suppression des tests expirés */
+        this.positionDAO.deleteExpiredTestsByHashCodes(timeouts);
+
+        /* Renvoi */
         return result;
     }
 }

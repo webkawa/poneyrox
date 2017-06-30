@@ -169,6 +169,7 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                 PositionEntity precedent = this.positionDAO.getLastPositionsByStrategy(
                         target.getTimeline(),
                         target.getSmooth(),
+                        target.getConfidence(),
                         target.getMode(),
                         target.getEntryMix(),
                         target.getExitMix(),
@@ -179,10 +180,6 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                 if (precedent.getProfit() > 0 && !precedent.getType().equals(PositionType.SIMULATION)) {
                     /* Récupération du taux courant */
                     RateEntity rate = curve.getOwner().getCurrent();
-
-                    /* Calcul du pont */
-                    double gap = ((target.getRelativeProfit() / 100) * (target.getMode() ? rate.getBid() : rate.getAsk())) * (super.getWallet().getProdSecurity() / 100);
-                    double stop = target.getMode() ? rate.getBid() - gap : rate.getAsk() + gap;
 
                     /* Prise de position dans l'API */
                     WhaleClubPositionDTO dto = this.access.takePosition(
@@ -199,7 +196,9 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                             target.getMode(),
                             PositionType.VIRTUAL,
                             score,
-                            curve.getSmooth(),
+                            target.getSmooth(),
+                            target.getConfidence(),
+                            target.getRelativeProfit(),
                             target.getEntryMix(),
                             target.getExitMix());
 
@@ -208,8 +207,9 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                             dto.getId(),
                             dto.getEntryPrice(),
                             dto.getSize(),
-                            stop,
-                            gap,
+                            position.getStopLoss(),
+                            position.getStopSuccess(),
+                            position.getStopGap(),
                             position,
                             super.getWallet());
 
@@ -254,7 +254,9 @@ public class ConsolidationTask extends ConsolidationTaskWrapper {
                             target.getMode(),
                             PositionType.TEST,
                             score,
-                            curve.getSmooth(),
+                            target.getSmooth(),
+                            target.getConfidence(),
+                            target.getRelativeProfit(),
                             target.getEntryMix(),
                             target.getExitMix());
 

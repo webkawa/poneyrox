@@ -52,6 +52,11 @@ public class TransactionEntity {
     private double stopLoss;
 
     /**
+     *  Seuil de succès.
+     */
+    private double stopSuccess;
+
+    /**
      *  Marge de sécurité.
      *  Marge de sécurité prévue à la création de la transaction.
      */
@@ -125,6 +130,14 @@ public class TransactionEntity {
      */
     public double getStopLoss() {
         return this.stopLoss;
+    }
+
+    /**
+     *  Retourne le seuil de succès de la transaction.
+     *  @return Seuil de succès.
+     */
+    public double getStopSuccess() {
+        return this.stopSuccess;
     }
 
     /**
@@ -205,6 +218,14 @@ public class TransactionEntity {
      */
     public void setStopLoss(double stopLoss) {
         this.stopLoss = stopLoss;
+    }
+
+    /**
+     *  Définit le seuil de succès.
+     *  @param stopSuccess Seuil de succès.
+     */
+    public void setStopSuccess(double stopSuccess) {
+        this.stopSuccess = stopSuccess;
     }
 
     /**

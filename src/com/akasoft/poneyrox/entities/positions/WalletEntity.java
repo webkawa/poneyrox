@@ -176,13 +176,12 @@ public class WalletEntity {
      */
     private int prodSize;
 
-
     /**
      *  Constructeur.
      */
     public WalletEntity() {
         this.start = new java.util.Date().getTime();
-        this.timeout = 4 * 60 * 60 * 1000;
+        this.timeout = 120 * 60 * 1000;
         this.retentionDelay = 36 * 60 * 60 * 1000;
         this.retentionProfit = -1;
         this.retentionConfirmations = 16;
@@ -204,7 +203,7 @@ public class WalletEntity {
         this.prodBalancing = 3;
         this.prodRisk = 3;
         this.prodSecurity = 200;
-        this.prodConfirmations = 8;
+        this.prodConfirmations = 6;
         this.prodSize = 1000;
         this.feeSpread = 0.34;
     }

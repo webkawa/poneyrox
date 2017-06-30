@@ -29,6 +29,7 @@ public class TransactionDAO extends AbstractDAO {
      *  @param entry Taux à l'entrée.
      *  @param size Taille de la transaction.
      *  @param stopLoss Seuil de sécurité.
+     *  @param stopSuccess Seuil de succès.
      *  @param stopGap Marge de sécurité.
      *  @param position Position liée.
      *  @return Transaction créée.
@@ -38,6 +39,7 @@ public class TransactionDAO extends AbstractDAO {
             double entry,
             double size,
             double stopLoss,
+            double stopSuccess,
             double stopGap,
             PositionEntity position,
             WalletEntity wallet) {
@@ -46,6 +48,7 @@ public class TransactionDAO extends AbstractDAO {
         result.setEntry(entry);
         result.setSize(size);
         result.setStopLoss(stopLoss);
+        result.setStopSuccess(stopSuccess);
         result.setStopGap(stopGap);
         result.setPosition(position);
         result.setWallet(wallet);
@@ -55,11 +58,13 @@ public class TransactionDAO extends AbstractDAO {
     }
 
     /**
-     *  Met à jour une transaction.
-     *  @param entity Transaction mise à jour.
+     *  Réalise la mise à jour du seuil de sécurité.
+     *  @param target Transaction ciblée.
+     *  @param stopLoss Seuil ciblé.
      */
-    public void updateTransaction(TransactionEntity entity) {
-        super.getSession().update(entity);
+    public void updateStopLoss(TransactionEntity target, double stopLoss) {
+        target.setStopLoss(stopLoss);
+        super.getSession().update(target);
     }
 
     /**

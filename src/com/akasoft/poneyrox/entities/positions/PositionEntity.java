@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -37,6 +38,7 @@ import java.util.UUID;
                         "   SUM(pos.lossScore) AS loss, " +
                         "   tl AS timeline, " +
                         "   pos.smooth AS smooth, " +
+                        "   MIN(pos.confidence) AS confidence, " +
                         "   pos.mode AS mode, " +
                         "   mxEn AS entryMix, " +
                         "   mxEx AS exitMix " +
@@ -78,6 +80,7 @@ import java.util.UUID;
                         "   SUM(pos.lossScore) AS loss, " +
                         "   tl AS timeline, " +
                         "   pos.smooth AS smooth, " +
+                        "   MIN(pos.confidence) AS confidence, " +
                         "   pos.mode AS mode, " +
                         "   mxEn AS entryMix, " +
                         "   mxEx AS exitMix " +
@@ -116,6 +119,7 @@ import java.util.UUID;
                         "WHERE pos.timeline = :timeline " +
                         "AND pos.smooth = :smooth " +
                         "AND pos.mode = :mode " +
+                        "AND pos.confidence = :confidence " +
                         "AND pos.entryMix = :entry " +
                         "AND pos.exitMix = :exit " +
                         "ORDER BY pos.end DESC"
@@ -125,6 +129,13 @@ import java.util.UUID;
                 query = "DELETE FROM PositionEntity AS pos " +
                         "WHERE pos.type = :type " +
                         "AND pos.timeout = true"
+        ),
+        @NamedQuery(
+                name = "Position.deleteExpiredTestsByHashCodes",
+                query = "DELETE FROM PositionEntity AS pos " +
+                        "WHERE pos.type IN(:ttype, :stype) " +
+                        "AND pos.open = false " +
+                        "AND pos.hash IN (:codes)"
         ),
         @NamedQuery(
                 name = "Position.deleteUntestedSimulations",
@@ -179,6 +190,13 @@ public class PositionEntity {
             PositionViews.Public.class
     })
     private boolean mode;
+
+    /**
+     *  Niveau de confiance.
+     *  Niveau de confiance accordé pour l'affectation des seuils de sécurité. Exprimé en pourcentage
+     *  du gain moyen espéré lors d'une prise de position.
+     */
+    private double confidence;
 
     /**
      *  Ouverture.
@@ -286,6 +304,24 @@ public class PositionEntity {
     private int lossScore;
 
     /**
+     *  Seuil de sortie en perte.
+     */
+    @Transient
+    private double stopLoss;
+
+    /**
+     *  Seuil de sortie en sécurité.
+     */
+    @Transient
+    private double stopSuccess;
+
+    /**
+     *  Marge de sécurité.
+     */
+    @Transient
+    private double stopGap;
+
+    /**
      *  Ligne temporelle liée.
      */
     @ManyToOne
@@ -324,6 +360,11 @@ public class PositionEntity {
      */
     @ManyToOne
     private MixinEntity exitMix;
+
+    /**
+     *  Clef de hashage.
+     */
+    private int hash;
 
     /**
      *  Constructeur.
@@ -501,6 +542,46 @@ public class PositionEntity {
     }
 
     /**
+     *  Retourne le niveau de confiance.
+     *  @return Niveau de confiance.
+     */
+    public double getConfidence() {
+        return this.confidence;
+    }
+
+    /**
+     *  Retourne le seuil de sortie en perte.
+     *  @return Seuil de sortie.
+     */
+    public double getStopLoss() {
+        return this.stopLoss;
+    }
+
+    /**
+     *  Retourne le seuil de sortie en marge.
+     *  @return Seuil de sortie.
+     */
+    public double getStopSuccess() {
+        return this.stopSuccess;
+    }
+
+    /**
+     *  Retourne la marge de sécurité.
+     *  @return Marge de sécurité.
+     */
+    public double getStopGap() {
+        return this.stopGap;
+    }
+
+    /**
+     *  Retourne la clef de hashage.
+     *  @return Clef de hashage.
+     */
+    public int getHash() {
+        return this.hash;
+    }
+
+    /**
      *  Définit le mode.
      *  @param mode Mode exécuté.
      */
@@ -610,5 +691,60 @@ public class PositionEntity {
      */
     public void setSmooth(int smooth) {
         this.smooth = smooth;
+    }
+
+    /**
+     *  Affecte le niveau de confiance.
+     *  @param confidence Valeur affectée.
+     */
+    public void setConfidence(double confidence) {
+        this.confidence = confidence;
+    }
+
+    /**
+     *  Affecte le seuil de sortie en perte.
+     *  @param stopLoss Seuil de sortie.
+     */
+    public void setStopLoss(double stopLoss) {
+        this.stopLoss = stopLoss;
+    }
+
+    /**
+     *  Affecte le seuil de sortie en succès.
+     *  @param stopSuccess Seuil de sortie.
+     */
+    public void setStopSuccess(double stopSuccess) {
+        this.stopSuccess = stopSuccess;
+    }
+
+    /**
+     *  Affecte la marge de sécurité.
+     *  @param stopGap Marge de sécurité.
+     */
+    public void setStopGap(double stopGap) {
+        this.stopGap = stopGap;
+    }
+
+    /**
+     *  Affecte la clef de hashage.
+     *  @param hash Valeur affectée.
+     */
+    public void setHash(int hash) {
+        this.hash = hash;
+    }
+
+    /**
+     *  Retourne la clef de hachage.
+     *  @return Clef de hachage.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                this.timeline.getId(),
+                this.smooth,
+                this.mode,
+                this.confidence,
+                this.entryMix.getId(),
+                this.exitMix.getId());
     }
 }

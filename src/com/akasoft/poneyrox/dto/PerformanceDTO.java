@@ -55,6 +55,11 @@ public class PerformanceDTO {
     private int smooth;
 
     /**
+     *  Niveau de confiance.
+     */
+    private double confidence;
+
+    /**
      *  Mode.
      */
     private boolean mode;
@@ -134,6 +139,14 @@ public class PerformanceDTO {
     }
 
     /**
+     *  Retourne le niveau de confiance.
+     *  @return Niveau de confiance.
+     */
+    public double getConfidence() {
+        return this.confidence;
+    }
+
+    /**
      *  Retourne le mode.
      *  @return Mode.
      */
@@ -179,6 +192,14 @@ public class PerformanceDTO {
      */
     public void setDailyProfit(double dailyProfit) {
         this.dailyProfit = dailyProfit;
+    }
+
+    /**
+     *  Affecte le niveau de confiance.
+     *  @param confidence Niveau de confiance.
+     */
+    public void setConfidence(double confidence) {
+        this.confidence = confidence;
     }
 
     /**
